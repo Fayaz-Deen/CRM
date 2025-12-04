@@ -197,21 +197,25 @@ export function Register() {
                   <div className="pt-2">
                     <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">Optional - we'll remind you!</p>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="relative group">
-                        <Cake className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[hsl(var(--muted-foreground))] transition-colors group-focus-within:text-[hsl(var(--primary))]" />
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-[hsl(var(--muted-foreground))] flex items-center gap-1.5">
+                          <Cake className="h-3.5 w-3.5" />
+                          Your Birthday
+                        </label>
                         <Input
                           type="date"
-                          placeholder="Birthday"
-                          className="pl-10 h-11 text-sm"
+                          className="h-11 text-sm"
                           {...register('birthday')}
                         />
                       </div>
-                      <div className="relative group">
-                        <Heart className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[hsl(var(--muted-foreground))] transition-colors group-focus-within:text-[hsl(var(--primary))]" />
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-[hsl(var(--muted-foreground))] flex items-center gap-1.5">
+                          <Heart className="h-3.5 w-3.5" />
+                          Anniversary
+                        </label>
                         <Input
                           type="date"
-                          placeholder="Anniversary"
-                          className="pl-10 h-11 text-sm"
+                          className="h-11 text-sm"
                           {...register('anniversary')}
                         />
                       </div>
