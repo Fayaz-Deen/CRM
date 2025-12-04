@@ -39,6 +39,7 @@ public class SecurityConfig {
             .and()
             .authorizeRequests()
                 .antMatchers("/h2-console/**").permitAll()
+                .antMatchers("/api/health").permitAll()
                 .antMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/forgot-password").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
