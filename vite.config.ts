@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Personal CRM',
-        short_name: 'CRM',
-        description: 'Manage your personal and business contacts',
+        name: 'Nu-Connect',
+        short_name: 'Nu-Connect',
+        description: 'Manage your contacts, meetings, and reminders',
         theme_color: '#3b82f6',
         background_color: '#ffffff',
         display: 'standalone',
