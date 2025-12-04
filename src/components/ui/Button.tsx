@@ -14,46 +14,44 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       transition-all duration-200 ease-out
       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[hsl(var(--ring))]
       disabled:pointer-events-none disabled:opacity-50
-      rounded-xl
-      active:scale-[0.98]
+      rounded-lg
+      active:scale-[0.985]
     `;
 
     const variants = {
       primary: `
         bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]
-        hover:bg-[hsl(var(--primary))]/90
-        shadow-sm hover:shadow-md
+        hover:brightness-105
+        shadow-sm
       `,
       secondary: `
         bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]
-        hover:bg-[hsl(var(--secondary))]/80
-        shadow-sm
+        hover:bg-[hsl(var(--muted))]
       `,
       outline: `
-        border-2 border-[hsl(var(--input))] bg-transparent
+        border border-[hsl(var(--border))] bg-transparent
         hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]
-        hover:border-[hsl(var(--accent))]
       `,
       ghost: `
         hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]
       `,
       destructive: `
         bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))]
-        hover:bg-[hsl(var(--destructive))]/90
-        shadow-sm hover:shadow-md
+        hover:brightness-105
+        shadow-sm
       `,
       success: `
         bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]
-        hover:bg-[hsl(var(--success))]/90
-        shadow-sm hover:shadow-md
+        hover:brightness-105
+        shadow-sm
       `,
     };
 
     const sizes = {
-      sm: 'h-9 px-4 text-sm gap-1.5',
-      md: 'h-11 px-5 text-sm gap-2',
-      lg: 'h-13 px-7 text-base gap-2',
-      icon: 'h-11 w-11',
+      sm: 'h-8 px-3 text-sm gap-1.5',
+      md: 'h-10 px-4 text-sm gap-2',
+      lg: 'h-11 px-5 text-base gap-2',
+      icon: 'h-10 w-10',
     };
 
     return (
