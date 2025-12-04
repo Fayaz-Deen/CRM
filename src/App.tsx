@@ -1,0 +1,54 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Layout } from './components/layout/Layout';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Dashboard } from './pages/Dashboard';
+import { Contacts } from './pages/Contacts';
+import { ContactDetail } from './pages/ContactDetail';
+import { Meetings } from './pages/Meetings';
+import { Reminders } from './pages/Reminders';
+import { Settings } from './pages/Settings';
+import SharedWithMe from './pages/SharedWithMe';
+import Templates from './pages/Templates';
+import { useAuthStore } from './store/authStore';
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuthStore();
+  if (isLoading) return <div className="flex h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent" /></div>;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function App() {
+  const { setLoading } = useAuthStore();
+
+  useEffect(() => {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+    setLoading(false);
+  }, [setLoading]);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+          <Route index element={<Navigate to="/dashboard" />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="contacts" element={<Contacts />} />
+          <Route path="contacts/:id" element={<ContactDetail />} />
+          <Route path="meetings" element={<Meetings />} />
+          <Route path="reminders" element={<Reminders />} />
+          <Route path="shared" element={<SharedWithMe />} />
+          <Route path="templates" element={<Templates />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
