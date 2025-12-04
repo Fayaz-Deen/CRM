@@ -1,12 +1,53 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Users, Calendar, Gift, Clock, AlertCircle, TrendingUp, ArrowUpRight, Sparkles, ChevronDown, BarChart3, UserPlus, CalendarPlus, CheckSquare, Zap } from 'lucide-react';
+import { Users, Calendar, Gift, Clock, AlertCircle, TrendingUp, ArrowUpRight, Sparkles, ChevronDown, BarChart3, UserPlus, CalendarPlus, CheckSquare, Zap, Loader2 } from 'lucide-react';
 import { Card, Avatar, Badge, Skeleton, SkeletonStatCard, SkeletonListItem } from '../components/ui';
 import { dashboardApi } from '../services/api';
 import { formatRelative, formatBirthday, getDaysUntil } from '../utils/dates';
 import type { Contact, Meeting } from '../types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Area, AreaChart } from 'recharts';
 import { useAuthStore } from '../store/authStore';
+
+const ITEMS_PER_PAGE = 20;
+
+// Hook for lazy loading items on scroll
+function useLazyLoad<T>(items: T[] | undefined) {
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  const hasMore = (items?.length || 0) > visibleCount;
+  const visibleItems = items?.slice(0, visibleCount) || [];
+
+  const loadMore = useCallback(() => {
+    if (hasMore) {
+      setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
+    }
+  }, [hasMore]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadMore]);
+
+  // Reset when items change
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [items?.length]);
+
+  return { visibleItems, hasMore, loaderRef };
+}
 
 interface DashboardStats {
   totalContacts: number;
@@ -192,6 +233,106 @@ const QuickActions = () => {
         ))}
       </div>
     </Card>
+  );
+};
+
+// Lazy loaded list for Birthdays
+const BirthdaysList = ({ contacts }: { contacts: Contact[] | undefined }) => {
+  const { visibleItems, hasMore, loaderRef } = useLazyLoad(contacts);
+
+  if (!contacts?.length) {
+    return <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-4">No upcoming birthdays</p>;
+  }
+
+  return (
+    <div className="space-y-2 max-h-80 overflow-y-auto">
+      {visibleItems.map((contact) => (
+        <Link
+          key={contact.id}
+          to={`/contacts/${contact.id}`}
+          className="flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-[hsl(var(--accent))] hover:shadow-sm group"
+        >
+          <Avatar src={contact.profilePicture} name={contact.name} size="sm" />
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate group-hover:text-[hsl(var(--primary))] transition-colors">{contact.name}</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">{contact.birthday && formatBirthday(contact.birthday)}</p>
+          </div>
+          <Badge variant="secondary" className="shrink-0">{contact.birthday && `${getDaysUntil(contact.birthday)}d`}</Badge>
+        </Link>
+      ))}
+      {hasMore && (
+        <div ref={loaderRef} className="flex justify-center py-2">
+          <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--muted-foreground))]" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Lazy loaded list for Follow-ups
+const FollowupsList = ({ meetings }: { meetings: Meeting[] | undefined }) => {
+  const { visibleItems, hasMore, loaderRef } = useLazyLoad(meetings);
+
+  if (!meetings?.length) {
+    return <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-4">No pending follow-ups</p>;
+  }
+
+  return (
+    <div className="space-y-2 max-h-80 overflow-y-auto">
+      {visibleItems.map((meeting) => (
+        <div
+          key={meeting.id}
+          className="flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-[hsl(var(--accent))] hover:shadow-sm"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
+            <Clock className="h-5 w-5 text-orange-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">{meeting.notes?.slice(0, 30) || 'Follow-up'}</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">{meeting.followupDate && formatRelative(meeting.followupDate)}</p>
+          </div>
+        </div>
+      ))}
+      {hasMore && (
+        <div ref={loaderRef} className="flex justify-center py-2">
+          <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--muted-foreground))]" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Lazy loaded list for Needs Attention
+const NeedsAttentionList = ({ contacts }: { contacts: Contact[] | undefined }) => {
+  const { visibleItems, hasMore, loaderRef } = useLazyLoad(contacts);
+
+  if (!contacts?.length) {
+    return <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-4">All contacts up to date</p>;
+  }
+
+  return (
+    <div className="space-y-2 max-h-80 overflow-y-auto">
+      {visibleItems.map((contact) => (
+        <Link
+          key={contact.id}
+          to={`/contacts/${contact.id}`}
+          className="flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-[hsl(var(--accent))] hover:shadow-sm group"
+        >
+          <Avatar src={contact.profilePicture} name={contact.name} size="sm" />
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate group-hover:text-[hsl(var(--primary))] transition-colors">{contact.name}</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              {contact.lastContactedAt ? `Last: ${formatRelative(contact.lastContactedAt)}` : 'Never contacted'}
+            </p>
+          </div>
+        </Link>
+      ))}
+      {hasMore && (
+        <div ref={loaderRef} className="flex justify-center py-2">
+          <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--muted-foreground))]" />
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -499,22 +640,7 @@ export function Dashboard() {
           count={stats?.upcomingBirthdays?.length}
           defaultOpen={false}
         >
-          <div className="space-y-2">
-            {stats?.upcomingBirthdays?.slice(0, 5).map((contact) => (
-              <Link
-                key={contact.id}
-                to={`/contacts/${contact.id}`}
-                className="flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-[hsl(var(--accent))] hover:shadow-sm group"
-              >
-                <Avatar src={contact.profilePicture} name={contact.name} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate group-hover:text-[hsl(var(--primary))] transition-colors">{contact.name}</p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">{contact.birthday && formatBirthday(contact.birthday)}</p>
-                </div>
-                <Badge variant="secondary" className="shrink-0">{contact.birthday && `${getDaysUntil(contact.birthday)}d`}</Badge>
-              </Link>
-            )) || <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-4">No upcoming birthdays</p>}
-          </div>
+          <BirthdaysList contacts={stats?.upcomingBirthdays} />
         </CollapsibleSection>
 
         {/* Pending Follow-ups */}
@@ -525,22 +651,7 @@ export function Dashboard() {
           count={stats?.pendingFollowups?.length}
           defaultOpen={false}
         >
-          <div className="space-y-2">
-            {stats?.pendingFollowups?.slice(0, 5).map((meeting) => (
-              <div
-                key={meeting.id}
-                className="flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-[hsl(var(--accent))] hover:shadow-sm"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
-                  <Clock className="h-5 w-5 text-orange-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{meeting.notes?.slice(0, 30) || 'Follow-up'}</p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">{meeting.followupDate && formatRelative(meeting.followupDate)}</p>
-                </div>
-              </div>
-            )) || <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-4">No pending follow-ups</p>}
-          </div>
+          <FollowupsList meetings={stats?.pendingFollowups} />
         </CollapsibleSection>
 
         {/* Needs Attention */}
@@ -551,23 +662,7 @@ export function Dashboard() {
           count={stats?.needsAttention?.length}
           defaultOpen={false}
         >
-          <div className="space-y-2">
-            {stats?.needsAttention?.slice(0, 5).map((contact) => (
-              <Link
-                key={contact.id}
-                to={`/contacts/${contact.id}`}
-                className="flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-[hsl(var(--accent))] hover:shadow-sm group"
-              >
-                <Avatar src={contact.profilePicture} name={contact.name} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate group-hover:text-[hsl(var(--primary))] transition-colors">{contact.name}</p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {contact.lastContactedAt ? `Last: ${formatRelative(contact.lastContactedAt)}` : 'Never contacted'}
-                  </p>
-                </div>
-              </Link>
-            )) || <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-4">All contacts up to date</p>}
-          </div>
+          <NeedsAttentionList contacts={stats?.needsAttention} />
         </CollapsibleSection>
       </div>
     </div>
