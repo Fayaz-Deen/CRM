@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,36 +7,6 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Rocket, CheckCircle2 } from 
 import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui';
 import { authApi } from '../services/api';
 import { useAuthStore } from '../store/authStore';
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-
-// TypeScript declarations for Google Identity Services
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: {
-            client_id: string;
-            callback: (response: { credential: string }) => void;
-            auto_select?: boolean;
-          }) => void;
-          renderButton: (
-            element: HTMLElement,
-            config: {
-              theme?: 'outline' | 'filled_blue' | 'filled_black';
-              size?: 'large' | 'medium' | 'small';
-              text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
-              shape?: 'rectangular' | 'pill' | 'circle' | 'square';
-              width?: number;
-            }
-          ) => void;
-          prompt: () => void;
-        };
-      };
-    };
-  }
-}
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -64,7 +34,6 @@ export function Register() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
-  const googleButtonRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -73,56 +42,6 @@ export function Register() {
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   });
-
-  // Handle Google Sign-In credential response
-  const handleGoogleCredential = useCallback(async (response: { credential: string }) => {
-    setError('');
-    try {
-      const authResponse = await authApi.googleAuth({ idToken: response.credential });
-      setAuth(authResponse.user, authResponse.token, authResponse.refreshToken);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Google sign-up failed');
-    }
-  }, [navigate, setAuth]);
-
-  // Initialize Google Sign-In
-  useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) return;
-
-    const initializeGoogle = () => {
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleCredential,
-        });
-
-        window.google.accounts.id.renderButton(googleButtonRef.current!, {
-          theme: 'outline',
-          size: 'large',
-          text: 'signup_with',
-          shape: 'rectangular',
-          width: 400,
-        });
-      }
-    };
-
-    // Check if Google script is already loaded
-    if (window.google?.accounts?.id) {
-      initializeGoogle();
-    } else {
-      // Wait for script to load
-      const checkGoogle = setInterval(() => {
-        if (window.google?.accounts?.id) {
-          clearInterval(checkGoogle);
-          initializeGoogle();
-        }
-      }, 100);
-
-      // Cleanup after 5 seconds
-      setTimeout(() => clearInterval(checkGoogle), 5000);
-    }
-  }, [handleGoogleCredential]);
 
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
@@ -201,27 +120,6 @@ export function Register() {
             </CardHeader>
 
             <CardContent className="pt-4">
-              {/* Google Sign Up - Primary Option */}
-              <div className="flex justify-center mb-6">
-                <div ref={googleButtonRef} className="w-full flex justify-center" />
-              </div>
-              {!GOOGLE_CLIENT_ID && (
-                <p className="text-xs text-center text-[hsl(var(--muted-foreground))] mb-6">
-                  Google Sign-Up not configured
-                </p>
-              )}
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-[hsl(var(--border))]" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[hsl(var(--card))] px-4 text-[hsl(var(--muted-foreground))] font-medium">
-                    Or sign up with email
-                  </span>
-                </div>
-              </div>
-
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 {error && (
                   <div className="rounded-xl bg-[hsl(var(--destructive))]/10 border border-[hsl(var(--destructive))]/20 p-4 text-sm text-[hsl(var(--destructive))] animate-fade-in flex items-center gap-2">
