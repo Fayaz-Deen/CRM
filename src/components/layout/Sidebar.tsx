@@ -89,14 +89,16 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform bg-[hsl(var(--card))] shadow-strong transition-transform duration-300 ease-out lg:translate-x-0 lg:z-40 ${
+        className={`fixed top-0 left-0 z-50 w-72 h-[100dvh] transform bg-[hsl(var(--card))] shadow-strong transition-transform duration-300 ease-out lg:translate-x-0 lg:z-40 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="flex h-full flex-col overflow-hidden">
-          {/* Logo */}
-          <div className="flex h-20 items-center gap-3 border-b border-[hsl(var(--border))] px-6">
+        <div
+          className="flex flex-col h-full"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          {/* Logo - fixed height */}
+          <div className="flex-none h-20 flex items-center gap-3 border-b border-[hsl(var(--border))] px-6">
             <img src="/logo.gif" alt="Nu-Connect" className="h-11 w-11 rounded-xl object-contain" />
             <div>
               <span className="text-lg font-bold">Nu-Connect</span>
@@ -104,69 +106,74 @@ export function Sidebar() {
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav
-            className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            <div className="space-y-1">
-              {navItems.map((item, index) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsOpen(false)}
-                  className={({ isActive }) =>
-                    `group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                      isActive
-                        ? 'bg-gradient-primary text-white shadow-md'
-                        : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]'
-                    }`
-                  }
-                  style={{ animationDelay: `${index * 30}ms` }}
-                >
-                  <item.icon className="h-5 w-5 transition-transform group-hover:scale-110" />
-                  <span className="flex-1">{item.label}</span>
-                  <ChevronRight className="h-4 w-4 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1" />
-                </NavLink>
-              ))}
-            </div>
-          </nav>
-
-          {/* Theme toggle */}
-          <div className="flex-shrink-0 border-t border-[hsl(var(--border))] p-4">
-            <button
-              onClick={toggleTheme}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[hsl(var(--muted-foreground))] transition-all hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]"
+          {/* Navigation - scrollable */}
+          <div className="flex-1 overflow-hidden">
+            <nav
+              className="h-full overflow-y-auto overscroll-contain p-4 touch-pan-y"
+              style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              <div className="relative h-5 w-5">
-                <Sun className={`absolute inset-0 h-5 w-5 transition-all ${resolvedTheme === 'dark' ? 'scale-0 rotate-90' : 'scale-100 rotate-0'}`} />
-                <Moon className={`absolute inset-0 h-5 w-5 transition-all ${resolvedTheme === 'dark' ? 'scale-100 rotate-0' : 'scale-0 -rotate-90'}`} />
+              <div className="space-y-1 pb-2">
+                {navItems.map((item, index) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      `group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? 'bg-gradient-primary text-white shadow-md'
+                          : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]'
+                      }`
+                    }
+                    style={{ animationDelay: `${index * 30}ms` }}
+                  >
+                    <item.icon className="h-5 w-5 transition-transform group-hover:scale-110" />
+                    <span className="flex-1">{item.label}</span>
+                    <ChevronRight className="h-4 w-4 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1" />
+                  </NavLink>
+                ))}
               </div>
-              <span>{resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
-            </button>
+            </nav>
           </div>
 
-          {/* User section */}
-          <div className="flex-shrink-0 border-t border-[hsl(var(--border))] p-4 space-y-3">
-            <div className="flex items-center gap-3 rounded-xl bg-[hsl(var(--accent))] p-3">
-              <Avatar src={user?.profilePicture} name={user?.name || 'User'} size="md" />
-              <div className="flex-1 overflow-hidden">
-                <p className="truncate text-sm font-semibold">{user?.name || 'User'}</p>
-                <p className="truncate text-xs text-[hsl(var(--muted-foreground))]">
-                  {user?.email || 'No email'}
-                </p>
-              </div>
+          {/* Bottom section - fixed */}
+          <div className="flex-none border-t border-[hsl(var(--border))]">
+            {/* Theme toggle */}
+            <div className="px-4 py-3">
+              <button
+                onClick={toggleTheme}
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-[hsl(var(--muted-foreground))] transition-all hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]"
+              >
+                <div className="relative h-5 w-5">
+                  <Sun className={`absolute inset-0 h-5 w-5 transition-all ${resolvedTheme === 'dark' ? 'scale-0 rotate-90' : 'scale-100 rotate-0'}`} />
+                  <Moon className={`absolute inset-0 h-5 w-5 transition-all ${resolvedTheme === 'dark' ? 'scale-100 rotate-0' : 'scale-0 -rotate-90'}`} />
+                </div>
+                <span>{resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+              </button>
             </div>
-            <button
-              onClick={() => {
-                handleLogout();
-                setIsOpen(false);
-              }}
-              className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 transition-all hover:bg-[hsl(var(--destructive))]/20 active:scale-[0.98]"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Sign out</span>
-            </button>
+
+            {/* User section */}
+            <div className="px-4 pb-4 space-y-2">
+              <div className="flex items-center gap-3 rounded-xl bg-[hsl(var(--accent))] p-3">
+                <Avatar src={user?.profilePicture} name={user?.name || 'User'} size="md" />
+                <div className="flex-1 overflow-hidden">
+                  <p className="truncate text-sm font-semibold">{user?.name || 'User'}</p>
+                  <p className="truncate text-xs text-[hsl(var(--muted-foreground))]">
+                    {user?.email || 'No email'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsOpen(false);
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 transition-all hover:bg-[hsl(var(--destructive))]/20 active:scale-[0.98]"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>
