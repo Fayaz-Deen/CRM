@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Search, Phone, Mail, MessageCircle, Users, Upload, UserPlus, Trash2, Tag, MoreHorizontal, CheckSquare, Square, X, Loader2 } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MessageCircle, Users, Upload, UserPlus, Trash2, CheckSquare, Square, X, Loader2 } from 'lucide-react';
 import { Button, Input, Card, Avatar, Badge, Modal, SkeletonContactCard } from '../components/ui';
 import { useContactStore } from '../store/contactStore';
 import { ContactForm } from '../components/contacts/ContactForm';

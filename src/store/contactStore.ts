@@ -197,10 +197,6 @@ export const useContactStore = create<ContactState>((set, get) => ({
   },
 
   deleteContact: async (id) => {
-    // Store for potential rollback
-    const previousContacts = get().contacts;
-    const deletedContact = previousContacts.find((c) => c.id === id);
-
     // Optimistic delete - remove immediately
     set((state) => ({
       contacts: state.contacts.filter((c) => c.id !== id),
