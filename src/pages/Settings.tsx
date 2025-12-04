@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { Bell, User, Lock, Download, Upload, FileText, Calendar, Users, AlertTriangle } from 'lucide-react';
-import { Button, Input, Card, CardHeader, CardTitle, CardContent, Select } from '../components/ui';
+import { Bell, User, Lock, Download, Upload, FileText, Calendar, Users, AlertTriangle, Sun, Moon, Monitor } from 'lucide-react';
+import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../components/ui';
 import { useAuthStore } from '../store/authStore';
+import { useTheme } from '../hooks/useTheme';
 import { authApi, contactExportApi, calendarApi } from '../services/api';
 
 export function Settings() {
   const { user, updateUser } = useAuthStore();
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -183,11 +185,14 @@ export function Settings() {
   ];
 
   return (
-    <div className="space-y-6 pb-20">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="min-h-screen">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-[hsl(var(--background))] border-b border-[hsl(var(--border))]">
+        <div className="px-4 py-4 lg:px-8">
+          <h1 className="text-2xl font-bold">Settings</h1>
 
-      {/* Tabs - scrollable on mobile */}
-      <div className="flex gap-2 border-b border-[hsl(var(--border))] pb-2 overflow-x-auto">
+          {/* Tabs - scrollable on mobile */}
+          <div className="flex gap-2 mt-4 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -205,8 +210,12 @@ export function Settings() {
             {tab.label}
           </button>
         ))}
+          </div>
+        </div>
       </div>
 
+      {/* Content */}
+      <div className="p-4 lg:p-8 space-y-6">
       {message && (
         <div className="rounded-lg bg-green-100 p-3 text-sm text-green-800 dark:bg-green-900 dark:text-green-200">
           {message}
@@ -257,42 +266,86 @@ export function Settings() {
       )}
 
       {activeTab === 'preferences' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Preferences</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSettings(onSettingsSubmit)} className="space-y-4">
-              <Select
-                label="Theme"
-                options={[
-                  { value: 'light', label: 'Light' },
-                  { value: 'dark', label: 'Dark' },
-                  { value: 'system', label: 'System' },
-                ]}
-                {...regSettings('theme')}
-              />
-              <Input
-                label="Birthday Reminder (days before)"
-                type="number"
-                {...regSettings('birthdayReminderDays')}
-              />
-              <Input
-                label="Anniversary Reminder (days before)"
-                type="number"
-                {...regSettings('anniversaryReminderDays')}
-              />
-              <Input
-                label="Default Follow-up (days)"
-                type="number"
-                {...regSettings('defaultFollowupDays')}
-              />
-              <Button type="submit" isLoading={isLoading}>
-                Save Preferences
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          {/* Theme Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <label className="block text-sm font-medium">Theme</label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTheme('light')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      theme === 'light'
+                        ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.1)]'
+                        : 'border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.5)]'
+                    }`}
+                  >
+                    <Sun className="h-6 w-6" />
+                    <span className="text-sm font-medium">Light</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme('dark')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      theme === 'dark'
+                        ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.1)]'
+                        : 'border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.5)]'
+                    }`}
+                  >
+                    <Moon className="h-6 w-6" />
+                    <span className="text-sm font-medium">Dark</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme('system')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      theme === 'system'
+                        ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.1)]'
+                        : 'border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.5)]'
+                    }`}
+                  >
+                    <Monitor className="h-6 w-6" />
+                    <span className="text-sm font-medium">System</span>
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Reminders Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Reminders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSettings(onSettingsSubmit)} className="space-y-4">
+                <Input
+                  label="Birthday Reminder (days before)"
+                  type="number"
+                  {...regSettings('birthdayReminderDays')}
+                />
+                <Input
+                  label="Anniversary Reminder (days before)"
+                  type="number"
+                  {...regSettings('anniversaryReminderDays')}
+                />
+                <Input
+                  label="Default Follow-up (days)"
+                  type="number"
+                  {...regSettings('defaultFollowupDays')}
+                />
+                <Button type="submit" isLoading={isLoading}>
+                  Save Preferences
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {activeTab === 'data' && (
@@ -434,6 +487,7 @@ export function Settings() {
           </Card>
         </div>
       )}
+      </div>
     </div>
   );
 }

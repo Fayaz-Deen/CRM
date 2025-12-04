@@ -62,88 +62,93 @@ export function Tasks() {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[hsl(var(--background))] px-4 py-3 border-b border-[hsl(var(--border))]">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">Tasks</h1>
-          <Button size="sm" onClick={() => setShowModal(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add
-          </Button>
-        </div>
-
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-4 gap-2 mt-3">
-            <div className="bg-[hsl(var(--card))] rounded-lg p-2 text-center">
-              <div className="text-lg font-bold">{stats.pending}</div>
-              <div className="text-xs text-[hsl(var(--muted-foreground))]">Pending</div>
-            </div>
-            <div className="bg-[hsl(var(--card))] rounded-lg p-2 text-center">
-              <div className="text-lg font-bold text-blue-500">{stats.inProgress}</div>
-              <div className="text-xs text-[hsl(var(--muted-foreground))]">In Progress</div>
-            </div>
-            <div className="bg-[hsl(var(--card))] rounded-lg p-2 text-center">
-              <div className="text-lg font-bold text-red-500">{stats.overdue}</div>
-              <div className="text-xs text-[hsl(var(--muted-foreground))]">Overdue</div>
-            </div>
-            <div className="bg-[hsl(var(--card))] rounded-lg p-2 text-center">
-              <div className="text-lg font-bold text-green-500">{stats.completed}</div>
-              <div className="text-xs text-[hsl(var(--muted-foreground))]">Done</div>
-            </div>
+      <div className="sticky top-0 z-10 bg-[hsl(var(--background))] border-b border-[hsl(var(--border))]">
+        <div className="px-4 py-4 lg:px-8">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Tasks</h1>
+            <Button size="sm" onClick={() => setShowModal(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add
+            </Button>
           </div>
-        )}
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mt-3 overflow-x-auto">
-          {(['active', 'overdue', 'completed', 'all'] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                filter === f
-                  ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
-                  : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]'
-              }`}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
+          {/* Stats Cards */}
+          {stats && (
+            <div className="grid grid-cols-4 gap-2 mt-4">
+              <div className="bg-[hsl(var(--card))] rounded-xl p-3 text-center border border-[hsl(var(--border))]">
+                <div className="text-xl font-bold">{stats.pending}</div>
+                <div className="text-xs text-[hsl(var(--muted-foreground))]">Pending</div>
+              </div>
+              <div className="bg-[hsl(var(--card))] rounded-xl p-3 text-center border border-[hsl(var(--border))]">
+                <div className="text-xl font-bold text-blue-500">{stats.inProgress}</div>
+                <div className="text-xs text-[hsl(var(--muted-foreground))]">In Progress</div>
+              </div>
+              <div className="bg-[hsl(var(--card))] rounded-xl p-3 text-center border border-[hsl(var(--border))]">
+                <div className="text-xl font-bold text-red-500">{stats.overdue}</div>
+                <div className="text-xs text-[hsl(var(--muted-foreground))]">Overdue</div>
+              </div>
+              <div className="bg-[hsl(var(--card))] rounded-xl p-3 text-center border border-[hsl(var(--border))]">
+                <div className="text-xl font-bold text-green-500">{stats.completed}</div>
+                <div className="text-xs text-[hsl(var(--muted-foreground))]">Done</div>
+              </div>
+            </div>
+          )}
+
+          {/* Filter Tabs */}
+          <div className="flex gap-2 mt-4 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0">
+            {(['active', 'overdue', 'completed', 'all'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  filter === f
+                    ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
+                    : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))]'
+                }`}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Task List */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 lg:p-8 space-y-3">
         {isLoading ? (
-          <div className="text-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent mx-auto" />
+          <div className="flex items-center justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent" />
           </div>
         ) : filteredTasks.length === 0 ? (
           <Card className="p-8 text-center">
             <CheckCircle2 className="h-12 w-12 mx-auto text-[hsl(var(--muted-foreground))] mb-3" />
-            <p className="text-[hsl(var(--muted-foreground))]">No tasks found</p>
+            <p className="text-[hsl(var(--muted-foreground))] font-medium">No tasks found</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+              {filter === 'active' ? 'Create a new task to get started' : 'No tasks match this filter'}
+            </p>
           </Card>
         ) : (
           filteredTasks.map((task) => (
             <Card
               key={task.id}
-              className={`p-4 ${isOverdue(task) ? 'border-red-300 dark:border-red-800' : ''}`}
+              className={`p-4 transition-all hover:shadow-md ${isOverdue(task) ? 'border-red-300 dark:border-red-800 border-2' : ''}`}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-4">
                 <button
                   onClick={() => task.status !== 'COMPLETED' && completeTask(task.id)}
-                  className="mt-0.5 touch-manipulation"
+                  className="mt-0.5 touch-manipulation flex-shrink-0"
                   disabled={task.status === 'COMPLETED'}
                 >
                   {statusIcons[task.status]}
                 </button>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between gap-2">
                     <h3 className={`font-medium ${task.status === 'COMPLETED' ? 'line-through text-[hsl(var(--muted-foreground))]' : ''}`}>
                       {task.title}
                     </h3>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${priorityColors[task.priority]}`}>
                       {task.priority}
                     </span>
                   </div>
@@ -152,11 +157,11 @@ export function Tasks() {
                       {task.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-3 mt-2 text-xs text-[hsl(var(--muted-foreground))]">
+                  <div className="flex items-center flex-wrap gap-3 mt-3 text-xs text-[hsl(var(--muted-foreground))]">
                     {task.dueDate && (
                       <span className={`flex items-center gap-1 ${isOverdue(task) ? 'text-red-500 font-medium' : ''}`}>
                         {isOverdue(task) && <AlertTriangle className="h-3 w-3" />}
-                        {new Date(task.dueDate).toLocaleDateString()}
+                        Due {new Date(task.dueDate).toLocaleDateString()}
                       </span>
                     )}
                     {task.contactName && (
@@ -190,7 +195,7 @@ export function Tasks() {
             placeholder="Add details..."
             rows={3}
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <Select
               label="Priority"
               value={formData.priority}
@@ -209,7 +214,7 @@ export function Tasks() {
             />
           </div>
           <Select
-            label="Related Contact (Optional)"
+            label="Related Contact"
             value={formData.contactId}
             onChange={(e) => setFormData({ ...formData, contactId: e.target.value })}
           >
@@ -220,7 +225,7 @@ export function Tasks() {
               </option>
             ))}
           </Select>
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" className="flex-1" onClick={() => setShowModal(false)}>
               Cancel
             </Button>

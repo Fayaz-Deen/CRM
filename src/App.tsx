@@ -16,6 +16,7 @@ import { Calendar } from './pages/Calendar';
 import { Tags } from './pages/Tags';
 import { Groups } from './pages/Groups';
 import { useAuthStore } from './store/authStore';
+import { ThemeProvider } from './hooks/useTheme';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -27,14 +28,11 @@ function App() {
   const { setLoading } = useAuthStore();
 
   useEffect(() => {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    }
     setLoading(false);
   }, [setLoading]);
 
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -56,6 +54,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
