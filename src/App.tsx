@@ -17,6 +17,7 @@ import { Tags } from './pages/Tags';
 import { Groups } from './pages/Groups';
 import { useAuthStore } from './store/authStore';
 import { ThemeProvider } from './hooks/useTheme';
+import { ToastProvider } from './components/ui';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -33,27 +34,29 @@ function App() {
 
   return (
     <ThemeProvider>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index element={<Navigate to="/dashboard" />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="contacts" element={<Contacts />} />
-          <Route path="contacts/:id" element={<ContactDetail />} />
-          <Route path="tasks" element={<Tasks />} />
-          <Route path="calendar" element={<Calendar />} />
-          <Route path="meetings" element={<Meetings />} />
-          <Route path="reminders" element={<Reminders />} />
-          <Route path="tags" element={<Tags />} />
-          <Route path="groups" element={<Groups />} />
-          <Route path="shared" element={<SharedWithMe />} />
-          <Route path="templates" element={<Templates />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+              <Route index element={<Navigate to="/dashboard" />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="contacts" element={<Contacts />} />
+              <Route path="contacts/:id" element={<ContactDetail />} />
+              <Route path="tasks" element={<Tasks />} />
+              <Route path="calendar" element={<Calendar />} />
+              <Route path="meetings" element={<Meetings />} />
+              <Route path="reminders" element={<Reminders />} />
+              <Route path="tags" element={<Tags />} />
+              <Route path="groups" element={<Groups />} />
+              <Route path="shared" element={<SharedWithMe />} />
+              <Route path="templates" element={<Templates />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Eye, Edit3, Clock, User } from 'lucide-react';
+import { Users, Eye, Edit3, Clock, User, Share2 } from 'lucide-react';
 import { Card, Badge, Avatar } from '../components/ui';
 import { useShareStore } from '../store/shareStore';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,138 +29,146 @@ export default function SharedWithMe() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Shared Contacts</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage contacts shared with you and by you</p>
+    <div className="min-h-screen pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-[hsl(var(--background))] px-4 py-3 border-b border-[hsl(var(--border))]">
+        <div className="flex items-center gap-2 mb-1">
+          <Share2 className="h-5 w-5 text-[hsl(var(--primary))]" />
+          <span className="text-sm font-medium text-[hsl(var(--primary))]">Sharing</span>
         </div>
-      </div>
+        <h1 className="text-xl font-bold">Shared Contacts</h1>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">Manage contacts shared with you and by you</p>
 
-      <div className="border-b border-gray-200 dark:border-gray-700">
-        <nav className="-mb-px flex space-x-8">
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mt-4">
           <button
             onClick={() => setActiveTab('with-me')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
               activeTab === 'with-me'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-md'
+                : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))]'
             }`}
           >
             Shared With Me ({sharedWithMe.length})
           </button>
           <button
             onClick={() => setActiveTab('by-me')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
               activeTab === 'by-me'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-md'
+                : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))]'
             }`}
           >
             Shared By Me ({sharedByMe.length})
           </button>
-        </nav>
+        </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        </div>
-      ) : activeTab === 'with-me' ? (
-        <div className="space-y-4">
-          {sharedWithMe.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Users className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">No shared contacts</h3>
-              <p className="mt-2 text-gray-500 dark:text-gray-400">
-                When someone shares a contact with you, it will appear here.
-              </p>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {sharedWithMe.map((share) => (
-                <Card
-                  key={share.id}
-                  className="p-4 cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate(`/shared-contact/${share.contactId}`)}
-                >
-                  <div className="flex items-start gap-3">
-                    <Avatar name={share.contactName} size="md" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                        {share.contactName}
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        Shared by {share.ownerName}
-                      </p>
-                      <div className="mt-2 flex items-center gap-2">
-                        <Badge variant={share.permission === 'VIEW_ADD' ? 'success' : 'default'}>
-                          {share.permission === 'VIEW_ADD' ? (
-                            <><Edit3 className="h-3 w-3 mr-1" /> Can Add Notes</>
-                          ) : (
-                            <><Eye className="h-3 w-3 mr-1" /> View Only</>
-                          )}
-                        </Badge>
+      {/* Content */}
+      <div className="p-4 space-y-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent" />
+          </div>
+        ) : activeTab === 'with-me' ? (
+          <div className="space-y-4">
+            {sharedWithMe.length === 0 ? (
+              <Card className="p-8 text-center">
+                <Users className="mx-auto h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+                <h3 className="font-medium">No shared contacts</h3>
+                <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+                  When someone shares a contact with you, it will appear here.
+                </p>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {sharedWithMe.map((share) => (
+                  <Card
+                    key={share.id}
+                    className="p-4 cursor-pointer hover:shadow-md hover-lift transition-all"
+                    onClick={() => navigate(`/shared-contact/${share.contactId}`)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Avatar name={share.contactName} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">
+                          {share.contactName}
+                        </h3>
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          Shared by {share.ownerName}
+                        </p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <Badge variant={share.permission === 'VIEW_ADD' ? 'success' : 'default'}>
+                            {share.permission === 'VIEW_ADD' ? (
+                              <><Edit3 className="h-3 w-3 mr-1" /> Can Add Notes</>
+                            ) : (
+                              <><Eye className="h-3 w-3 mr-1" /> View Only</>
+                            )}
+                          </Badge>
+                        </div>
+                        <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Expires: {formatExpiry(share.expiresAt)}
+                        </p>
                       </div>
-                      <p className="mt-2 text-xs text-gray-400 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Expires: {formatExpiry(share.expiresAt)}
-                      </p>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {sharedByMe.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Users className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">No contacts shared</h3>
-              <p className="mt-2 text-gray-500 dark:text-gray-400">
-                You haven't shared any contacts yet. Share a contact from the contact detail page.
-              </p>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {sharedByMe.map((share) => (
-                <Card key={share.id} className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar name={share.contactName} size="md" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                        {share.contactName}
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        Shared with {share.sharedWithName || share.sharedWithEmail}
-                      </p>
-                      <div className="mt-2 flex items-center gap-2">
-                        <Badge variant={share.permission === 'VIEW_ADD' ? 'success' : 'default'}>
-                          {share.permission === 'VIEW_ADD' ? 'Can Add Notes' : 'View Only'}
-                        </Badge>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sharedByMe.length === 0 ? (
+              <Card className="p-8 text-center">
+                <Users className="mx-auto h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+                <h3 className="font-medium">No contacts shared</h3>
+                <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+                  You haven't shared any contacts yet. Share a contact from the contact detail page.
+                </p>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {sharedByMe.map((share) => (
+                  <Card key={share.id} className="p-4 hover-lift transition-all">
+                    <div className="flex items-start gap-3">
+                      <Avatar name={share.contactName} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">
+                          {share.contactName}
+                        </h3>
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          Shared with {share.sharedWithName || share.sharedWithEmail}
+                        </p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <Badge variant={share.permission === 'VIEW_ADD' ? 'success' : 'default'}>
+                            {share.permission === 'VIEW_ADD' ? 'Can Add Notes' : 'View Only'}
+                          </Badge>
+                        </div>
+                        <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Expires: {formatExpiry(share.expiresAt)}
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRevokeShare(share.id);
+                          }}
+                          className="mt-3 text-sm text-[hsl(var(--destructive))] hover:underline"
+                        >
+                          Revoke Access
+                        </button>
                       </div>
-                      <p className="mt-2 text-xs text-gray-400 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Expires: {formatExpiry(share.expiresAt)}
-                      </p>
-                      <button
-                        onClick={() => handleRevokeShare(share.id)}
-                        className="mt-3 text-sm text-red-600 hover:text-red-700 dark:text-red-400"
-                      >
-                        Revoke Access
-                      </button>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

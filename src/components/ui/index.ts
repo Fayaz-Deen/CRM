@@ -6,3 +6,4 @@ export { Avatar } from './Avatar';
 export { Badge } from './Badge';
 export { Select } from './Select';
 export { Textarea } from './Textarea';
+export { ToastProvider, useToast, toast } from './Toast';
