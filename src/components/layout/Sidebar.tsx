@@ -92,8 +92,9 @@ export function Sidebar() {
         className={`fixed inset-y-0 left-0 z-50 w-72 transform bg-[hsl(var(--card))] shadow-strong transition-transform duration-300 ease-out lg:translate-x-0 lg:z-40 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col overflow-hidden">
           {/* Logo */}
           <div className="flex h-20 items-center gap-3 border-b border-[hsl(var(--border))] px-6">
             <img src="/logo.gif" alt="Nu-Connect" className="h-11 w-11 rounded-xl object-contain" />
@@ -129,7 +130,7 @@ export function Sidebar() {
           </nav>
 
           {/* Theme toggle */}
-          <div className="border-t border-[hsl(var(--border))] p-4">
+          <div className="flex-shrink-0 border-t border-[hsl(var(--border))] p-4">
             <button
               onClick={toggleTheme}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[hsl(var(--muted-foreground))] transition-all hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]"
@@ -143,7 +144,7 @@ export function Sidebar() {
           </div>
 
           {/* User section */}
-          <div className="border-t border-[hsl(var(--border))] p-4 space-y-3">
+          <div className="flex-shrink-0 border-t border-[hsl(var(--border))] p-4 space-y-3">
             <div className="flex items-center gap-3 rounded-xl bg-[hsl(var(--accent))] p-3">
               <Avatar src={user?.profilePicture} name={user?.name || 'User'} size="md" />
               <div className="flex-1 overflow-hidden">
@@ -154,7 +155,10 @@ export function Sidebar() {
               </div>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                handleLogout();
+                setIsOpen(false);
+              }}
               className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 transition-all hover:bg-[hsl(var(--destructive))]/20 active:scale-[0.98]"
             >
               <LogOut className="h-4 w-4" />
