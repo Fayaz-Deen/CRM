@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { GlobalSearch } from '../GlobalSearch';
 import { ThemeToggle } from '../ui';
+import { PWAInstallPrompt } from '../PWAInstallPrompt';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 export function Layout() {
@@ -23,6 +24,7 @@ export function Layout() {
         </div>
       </main>
       <BottomNav />
+      <PWAInstallPrompt />
     </div>
   );
 }
