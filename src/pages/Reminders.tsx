@@ -35,7 +35,12 @@ export function Reminders() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Reminders</h1>
       {reminders.length === 0 ? (
-        <Card className="p-12 text-center"><Bell className="mx-auto h-12 w-12 text-[hsl(var(--muted-foreground))]" /><p className="mt-4 text-[hsl(var(--muted-foreground))]">No pending reminders</p></Card>
+        <Card className="p-12">
+          <div className="flex flex-col items-center justify-center text-center">
+            <Bell className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+            <p className="text-[hsl(var(--muted-foreground))]">No pending reminders</p>
+          </div>
+        </Card>
       ) : (
         <div className="space-y-4">
           {reminders.map((reminder) => {

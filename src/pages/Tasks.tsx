@@ -122,12 +122,14 @@ export function Tasks() {
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent" />
           </div>
         ) : filteredTasks.length === 0 ? (
-          <Card className="p-8 text-center">
-            <CheckCircle2 className="h-12 w-12 mx-auto text-[hsl(var(--muted-foreground))] mb-3" />
-            <p className="text-[hsl(var(--muted-foreground))] font-medium">No tasks found</p>
-            <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-              {filter === 'active' ? 'Create a new task to get started' : 'No tasks match this filter'}
-            </p>
+          <Card className="p-8">
+            <div className="flex flex-col items-center justify-center text-center">
+              <CheckCircle2 className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+              <p className="text-[hsl(var(--muted-foreground))] font-medium">No tasks found</p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                {filter === 'active' ? 'Create a new task to get started' : 'No tasks match this filter'}
+              </p>
+            </div>
           </Card>
         ) : (
           filteredTasks.map((task) => (

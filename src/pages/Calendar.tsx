@@ -146,9 +146,11 @@ export function Calendar() {
           /* Upcoming Events View */
           <div className="space-y-6">
             {Object.keys(groupedUpcoming).length === 0 ? (
-              <Card className="p-8 text-center">
-                <CalendarIcon className="h-12 w-12 mx-auto text-[hsl(var(--muted-foreground))] mb-3" />
-                <p className="text-[hsl(var(--muted-foreground))]">No upcoming events</p>
+              <Card className="p-8">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <CalendarIcon className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+                  <p className="text-[hsl(var(--muted-foreground))]">No upcoming events</p>
+                </div>
               </Card>
             ) : (
               Object.entries(groupedUpcoming).map(([dateKey, dayEvents]) => (

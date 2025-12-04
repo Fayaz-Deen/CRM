@@ -49,7 +49,7 @@ export function CardDescription({ className = '', children, ...props }: Omit<Car
 
 export function CardContent({ className = '', children, ...props }: Omit<CardProps, 'variant'>) {
   return (
-    <div className={`p-6 pt-0 ${className}`} {...props}>
+    <div className={`p-6 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -57,7 +57,7 @@ export function CardContent({ className = '', children, ...props }: Omit<CardPro
 
 export function CardFooter({ className = '', children, ...props }: Omit<CardProps, 'variant'>) {
   return (
-    <div className={`flex items-center p-6 pt-0 ${className}`} {...props}>
+    <div className={`flex items-center justify-center p-6 pt-0 ${className}`} {...props}>
       {children}
     </div>
   );

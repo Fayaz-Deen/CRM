@@ -161,12 +161,14 @@ export function Groups() {
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent mx-auto" />
           </div>
         ) : groups.length === 0 ? (
-          <Card className="p-8 text-center">
-            <Users className="h-12 w-12 mx-auto text-[hsl(var(--muted-foreground))] mb-3" />
-            <p className="text-[hsl(var(--muted-foreground))]">No groups yet</p>
-            <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-              Create groups to organize your contacts
-            </p>
+          <Card className="p-8">
+            <div className="flex flex-col items-center justify-center text-center">
+              <Users className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+              <p className="text-[hsl(var(--muted-foreground))]">No groups yet</p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                Create groups to organize your contacts
+              </p>
+            </div>
           </Card>
         ) : (
           groups.map((group) => (

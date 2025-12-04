@@ -73,12 +73,14 @@ export default function SharedWithMe() {
         ) : activeTab === 'with-me' ? (
           <div className="space-y-4">
             {sharedWithMe.length === 0 ? (
-              <Card className="p-8 text-center">
-                <Users className="mx-auto h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
-                <h3 className="font-medium">No shared contacts</h3>
-                <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
-                  When someone shares a contact with you, it will appear here.
-                </p>
+              <Card className="p-8">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <Users className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+                  <h3 className="font-medium">No shared contacts</h3>
+                  <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+                    When someone shares a contact with you, it will appear here.
+                  </p>
+                </div>
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -121,12 +123,14 @@ export default function SharedWithMe() {
         ) : (
           <div className="space-y-4">
             {sharedByMe.length === 0 ? (
-              <Card className="p-8 text-center">
-                <Users className="mx-auto h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
-                <h3 className="font-medium">No contacts shared</h3>
-                <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
-                  You haven't shared any contacts yet. Share a contact from the contact detail page.
-                </p>
+              <Card className="p-8">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <Users className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+                  <h3 className="font-medium">No contacts shared</h3>
+                  <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+                    You haven't shared any contacts yet. Share a contact from the contact detail page.
+                  </p>
+                </div>
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

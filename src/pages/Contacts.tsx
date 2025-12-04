@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Phone, Mail, MessageCircle } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MessageCircle, Users } from 'lucide-react';
 import { Button, Input, Card, Avatar, Badge, Modal } from '../components/ui';
 import { useContactStore } from '../store/contactStore';
 import { ContactForm } from '../components/contacts/ContactForm';
@@ -72,11 +72,14 @@ export function Contacts() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent" />
         </div>
       ) : filteredContacts.length === 0 ? (
-        <Card className="p-12 text-center">
-          <p className="text-[hsl(var(--muted-foreground))]">No contacts found</p>
-          <Button className="mt-4" onClick={() => setShowAddModal(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Add your first contact
-          </Button>
+        <Card className="p-12">
+          <div className="flex flex-col items-center justify-center text-center">
+            <Users className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+            <p className="text-[hsl(var(--muted-foreground))]">No contacts found</p>
+            <Button className="mt-4" onClick={() => setShowAddModal(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Add your first contact
+            </Button>
+          </div>
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

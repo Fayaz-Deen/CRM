@@ -107,12 +107,14 @@ export function Tags() {
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent mx-auto" />
           </div>
         ) : tags.length === 0 ? (
-          <Card className="p-8 text-center">
-            <TagIcon className="h-12 w-12 mx-auto text-[hsl(var(--muted-foreground))] mb-3" />
-            <p className="text-[hsl(var(--muted-foreground))]">No tags yet</p>
-            <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-              Create tags to organize your contacts
-            </p>
+          <Card className="p-8">
+            <div className="flex flex-col items-center justify-center text-center">
+              <TagIcon className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+              <p className="text-[hsl(var(--muted-foreground))]">No tags yet</p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                Create tags to organize your contacts
+              </p>
+            </div>
           </Card>
         ) : (
           tags.map((tag) => (

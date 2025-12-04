@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Calendar, Gift, Clock, AlertCircle, TrendingUp, ArrowUpRight, Sparkles, ChevronDown } from 'lucide-react';
-import { Card, CardContent, Avatar, Badge } from '../components/ui';
+import { Card, Avatar, Badge } from '../components/ui';
 import { dashboardApi } from '../services/api';
 import { formatRelative, formatBirthday, getDaysUntil } from '../utils/dates';
 import type { Contact, Meeting } from '../types';
@@ -86,21 +86,21 @@ const StatCard = ({ icon: Icon, label, value, color, trend }: {
   trend?: number;
 }) => (
   <Card className="hover-lift group cursor-default">
-    <CardContent className="flex items-center gap-4 p-6">
-      <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${color} transition-transform group-hover:scale-110`}>
+    <div className="flex items-center gap-4 p-5">
+      <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${color} transition-transform group-hover:scale-110`}>
         <Icon className="h-7 w-7" />
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <p className="text-3xl font-bold">{value}</p>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">{label}</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))] truncate">{label}</p>
       </div>
       {trend !== undefined && (
-        <div className={`flex items-center gap-1 text-sm font-medium ${trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+        <div className={`flex items-center gap-1 text-sm font-medium shrink-0 ${trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
           <ArrowUpRight className={`h-4 w-4 ${trend < 0 ? 'rotate-90' : ''}`} />
           {Math.abs(trend)}%
         </div>
       )}
-    </CardContent>
+    </div>
   </Card>
 );
 

@@ -100,15 +100,17 @@ export default function Templates() {
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--primary))] border-t-transparent" />
           </div>
         ) : templates.length === 0 ? (
-          <Card className="p-8 text-center">
-            <FileText className="mx-auto h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
-            <h3 className="font-medium">No templates yet</h3>
-            <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
-              Create message templates for quick communication with your contacts.
-            </p>
-            <Button onClick={() => handleOpenModal()} className="mt-4">
-              <Plus className="mr-2 h-4 w-4" /> Create First Template
-            </Button>
+          <Card className="p-8">
+            <div className="flex flex-col items-center justify-center text-center">
+              <FileText className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
+              <h3 className="font-medium">No templates yet</h3>
+              <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+                Create message templates for quick communication with your contacts.
+              </p>
+              <Button onClick={() => handleOpenModal()} className="mt-4">
+                <Plus className="mr-2 h-4 w-4" /> Create First Template
+              </Button>
+            </div>
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
