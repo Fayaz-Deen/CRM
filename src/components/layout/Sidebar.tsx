@@ -63,8 +63,8 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between h-14 px-4 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] lg:hidden">
+      {/* Mobile Header - pointer-events-auto ensures clicks work */}
+      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between h-14 px-4 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] lg:hidden pointer-events-auto">
         <button
           className="flex h-9 w-9 items-center justify-center rounded-lg bg-[hsl(var(--accent))] active:scale-95"
           onClick={() => setIsOpen(!isOpen)}
@@ -85,84 +85,91 @@ export function Sidebar() {
         </button>
       </header>
 
-      {/* Mobile Menu - Full screen overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setIsOpen(false)}
-          />
+      {/* Mobile Menu - Only renders when open */}
+      <div
+        className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-200 ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/50"
+          onClick={() => setIsOpen(false)}
+        />
 
-          {/* Menu Panel */}
+        {/* Menu Panel */}
+        <div
+          className={`absolute top-14 left-0 right-0 bottom-0 bg-[hsl(var(--background))] overflow-hidden transition-transform duration-200 ${
+            isOpen ? 'translate-y-0' : '-translate-y-4'
+          }`}
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
           <div
-            className="absolute top-14 left-0 right-0 bottom-0 bg-[hsl(var(--background))] overflow-hidden"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+            className="h-full overflow-y-auto"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            <div
-              className="h-full overflow-y-auto"
-              style={{ WebkitOverflowScrolling: 'touch' }}
-            >
-              {/* User info at top */}
-              <div className="p-4 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))]">
-                <div className="flex items-center gap-3">
-                  <Avatar src={user?.profilePicture} name={user?.name || 'User'} size="md" />
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm font-semibold">{user?.name || 'User'}</p>
-                    <p className="truncate text-xs text-[hsl(var(--muted-foreground))]">
-                      {user?.email || 'No email'}
-                    </p>
-                  </div>
+            {/* User info at top */}
+            <div className="p-4 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))]">
+              <div className="flex items-center gap-3">
+                <Avatar src={user?.profilePicture} name={user?.name || 'User'} size="md" />
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-semibold">{user?.name || 'User'}</p>
+                  <p className="truncate text-xs text-[hsl(var(--muted-foreground))]">
+                    {user?.email || 'No email'}
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Navigation Grid */}
-              <div className="p-4">
-                <div className="grid grid-cols-3 gap-3">
-                  {navItems.map((item) => (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setIsOpen(false)}
-                      className={({ isActive }) =>
-                        `flex flex-col items-center gap-2 p-4 rounded-xl text-center transition-all ${
-                          isActive
-                            ? 'bg-[hsl(var(--primary))] text-white'
-                            : 'bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] active:scale-95'
-                        }`
-                      }
-                    >
-                      <item.icon className="h-6 w-6" />
-                      <span className="text-xs font-medium">{item.label}</span>
-                    </NavLink>
-                  ))}
-                </div>
+            {/* Navigation Grid */}
+            <div className="p-4">
+              <div className="grid grid-cols-3 gap-3">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      `flex flex-col items-center gap-2 p-4 rounded-xl text-center transition-all ${
+                        isActive
+                          ? 'bg-[hsl(var(--primary))] text-white'
+                          : 'bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] active:scale-95'
+                      }`
+                    }
+                  >
+                    <item.icon className="h-6 w-6" />
+                    <span className="text-xs font-medium">{item.label}</span>
+                  </NavLink>
+                ))}
               </div>
+            </div>
 
-              {/* Bottom actions */}
-              <div className="p-4 space-y-3">
-                <button
-                  onClick={toggleTheme}
-                  className="flex w-full items-center justify-center gap-2 p-4 rounded-xl bg-[hsl(var(--card))] text-[hsl(var(--foreground))] active:scale-[0.98]"
-                >
-                  {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                  <span className="text-sm font-medium">
-                    {resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
-                  </span>
-                </button>
+            {/* Bottom actions */}
+            <div className="p-4 space-y-3">
+              <button
+                onClick={() => {
+                  toggleTheme();
+                  setIsOpen(false);
+                }}
+                className="flex w-full items-center justify-center gap-2 p-4 rounded-xl bg-[hsl(var(--card))] text-[hsl(var(--foreground))] active:scale-[0.98]"
+              >
+                {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                <span className="text-sm font-medium">
+                  {resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
+                </span>
+              </button>
 
-                <button
-                  onClick={handleLogout}
-                  className="flex w-full items-center justify-center gap-2 p-4 rounded-xl bg-[hsl(var(--destructive))]/10 text-[hsl(var(--destructive))] active:scale-[0.98]"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span className="text-sm font-medium">Sign out</span>
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center justify-center gap-2 p-4 rounded-xl bg-[hsl(var(--destructive))]/10 text-[hsl(var(--destructive))] active:scale-[0.98]"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="text-sm font-medium">Sign out</span>
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-72 flex-col bg-[hsl(var(--card))] shadow-strong">
