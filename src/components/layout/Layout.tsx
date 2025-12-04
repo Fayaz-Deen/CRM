@@ -19,7 +19,7 @@ export function Layout() {
           <GlobalSearch />
           <ThemeToggle />
         </header>
-        <div className="min-h-screen p-4 pt-20 pb-24 sm:p-6 sm:pt-20 lg:p-8 lg:pt-8 lg:pb-8">
+        <div className="min-h-screen p-4 pt-[4.5rem] pb-24 sm:p-6 sm:pt-[4.5rem] lg:p-8 lg:pt-8 lg:pb-8">
           <Outlet />
         </div>
       </main>
