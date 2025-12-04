@@ -93,7 +93,7 @@ const CollapsibleSection = ({
   badge,
   count,
   children,
-  defaultOpen = true
+  defaultOpen = false
 }: {
   title: string;
   icon?: typeof TrendingUp;
@@ -533,7 +533,7 @@ export function Dashboard() {
             title="Recently Viewed"
             icon={Eye}
             count={recentlyViewed.length}
-            defaultOpen={true}
+            defaultOpen={false}
           >
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
               {recentlyViewed.map((contact) => (
@@ -558,7 +558,7 @@ export function Dashboard() {
             title="Recent Activity"
             icon={ActivityIcon}
             count={activities.length}
-            defaultOpen={true}
+            defaultOpen={false}
           >
             <ActivityFeed activities={activities} />
           </CollapsibleSection>
