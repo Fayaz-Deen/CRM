@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Search, Phone, Mail, MessageCircle, Users, Upload, UserPlus, Trash2, Tag, MoreHorizontal, CheckSquare, Square, X } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MessageCircle, Users, Upload, UserPlus, Trash2, Tag, MoreHorizontal, CheckSquare, Square, X, Loader2 } from 'lucide-react';
 import { Button, Input, Card, Avatar, Badge, Modal, SkeletonContactCard } from '../components/ui';
 import { useContactStore } from '../store/contactStore';
 import { ContactForm } from '../components/contacts/ContactForm';
 import { openWhatsApp, openEmail, openPhoneCall } from '../utils/communication';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import type { Contact } from '../types';
 
 export function Contacts() {
-  const { contacts, isLoading, fetchContacts, searchQuery, setSearchQuery, selectedTags, setSelectedTags, deleteContact } = useContactStore();
+  const { contacts, isLoading, isLoadingMore, pagination, fetchContacts, loadMore, searchQuery, setSearchQuery, selectedTags, setSelectedTags, deleteContact } = useContactStore();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,6 +25,13 @@ export function Contacts() {
   useEffect(() => {
     fetchContacts();
   }, [fetchContacts]);
+
+  // Infinite scroll
+  const { loadMoreRef } = useInfiniteScroll({
+    onLoadMore: loadMore,
+    hasMore: pagination.hasMore,
+    isLoading: isLoadingMore,
+  });
 
   // Bulk selection handlers
   const toggleSelectContact = (id: string) => {
@@ -165,17 +173,36 @@ export function Contacts() {
           </div>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredContacts.map((contact) => (
-            <ContactCard
-              key={contact.id}
-              contact={contact}
-              isSelected={selectedContacts.has(contact.id)}
-              onToggleSelect={() => toggleSelectContact(contact.id)}
-              selectionMode={selectedContacts.size > 0}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredContacts.map((contact) => (
+              <ContactCard
+                key={contact.id}
+                contact={contact}
+                isSelected={selectedContacts.has(contact.id)}
+                onToggleSelect={() => toggleSelectContact(contact.id)}
+                selectionMode={selectedContacts.size > 0}
+              />
+            ))}
+          </div>
+
+          {/* Infinite scroll trigger */}
+          {pagination.hasMore && !searchQuery && selectedTags.length === 0 && (
+            <div ref={loadMoreRef} className="flex justify-center py-8">
+              {isLoadingMore && (
+                <div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Loading more contacts...</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Contact count */}
+          <div className="text-center text-sm text-[hsl(var(--muted-foreground))] py-4">
+            Showing {filteredContacts.length} of {pagination.totalCount} contacts
+          </div>
+        </>
       )}
 
       {/* Add Contact Modal */}

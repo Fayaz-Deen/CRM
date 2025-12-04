@@ -3,14 +3,24 @@ import type { Contact } from '../types';
 import { db } from '../db';
 import { contactApi } from '../services/api';
 
+interface PaginationState {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  hasMore: boolean;
+}
+
 interface ContactState {
   contacts: Contact[];
   selectedContact: Contact | null;
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: string | null;
   searchQuery: string;
   selectedTags: string[];
+  pagination: PaginationState;
   fetchContacts: () => Promise<void>;
+  loadMore: () => Promise<void>;
   getContact: (id: string) => Promise<Contact | null>;
   createContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Contact>;
   updateContact: (id: string, contact: Partial<Contact>) => Promise<Contact>;
@@ -18,25 +28,79 @@ interface ContactState {
   setSelectedContact: (contact: Contact | null) => void;
   setSearchQuery: (query: string) => void;
   setSelectedTags: (tags: string[]) => void;
+  resetPagination: () => void;
 }
+
+const DEFAULT_PAGE_SIZE = 20;
 
 export const useContactStore = create<ContactState>((set, get) => ({
   contacts: [],
   selectedContact: null,
   isLoading: false,
+  isLoadingMore: false,
   error: null,
   searchQuery: '',
   selectedTags: [],
+  pagination: {
+    page: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    totalCount: 0,
+    hasMore: true,
+  },
 
   fetchContacts: async () => {
     set({ isLoading: true, error: null });
     try {
       const contacts = await contactApi.getAll();
       await db.contacts.bulkPut(contacts);
-      set({ contacts, isLoading: false });
+      set({
+        contacts,
+        isLoading: false,
+        pagination: {
+          page: 1,
+          pageSize: DEFAULT_PAGE_SIZE,
+          totalCount: contacts.length,
+          hasMore: contacts.length >= DEFAULT_PAGE_SIZE,
+        },
+      });
     } catch (error) {
       const localContacts = await db.contacts.toArray();
-      set({ contacts: localContacts, isLoading: false, error: 'Using offline data' });
+      set({
+        contacts: localContacts,
+        isLoading: false,
+        error: 'Using offline data',
+        pagination: {
+          page: 1,
+          pageSize: DEFAULT_PAGE_SIZE,
+          totalCount: localContacts.length,
+          hasMore: false,
+        },
+      });
+    }
+  },
+
+  loadMore: async () => {
+    const { pagination, isLoadingMore, contacts } = get();
+    if (isLoadingMore || !pagination.hasMore) return;
+
+    set({ isLoadingMore: true });
+    try {
+      // For now, we load all contacts at once from API
+      // In a real implementation, you'd add pagination params to the API
+      const allContacts = await contactApi.getAll();
+      const newContacts = allContacts.slice(contacts.length, contacts.length + DEFAULT_PAGE_SIZE);
+
+      set((state) => ({
+        contacts: [...state.contacts, ...newContacts],
+        isLoadingMore: false,
+        pagination: {
+          ...state.pagination,
+          page: state.pagination.page + 1,
+          hasMore: contacts.length + newContacts.length < allContacts.length,
+        },
+      }));
+    } catch {
+      set({ isLoadingMore: false });
     }
   },
 
@@ -57,22 +121,34 @@ export const useContactStore = create<ContactState>((set, get) => ({
   },
 
   createContact: async (contactData) => {
-    set({ isLoading: true });
+    // Optimistic update: add temp contact immediately
+    const tempId = crypto.randomUUID();
+    const tempContact: Contact = {
+      ...contactData,
+      id: tempId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Add to UI immediately (optimistic)
+    set((state) => ({
+      contacts: [tempContact, ...state.contacts],
+      pagination: {
+        ...state.pagination,
+        totalCount: state.pagination.totalCount + 1,
+      },
+    }));
+
     try {
       const contact = await contactApi.create(contactData);
       await db.contacts.put(contact);
+      // Replace temp contact with real one
       set((state) => ({
-        contacts: [...state.contacts, contact],
-        isLoading: false,
+        contacts: state.contacts.map((c) => (c.id === tempId ? contact : c)),
       }));
       return contact;
     } catch {
-      const tempContact: Contact = {
-        ...contactData,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      // Keep the temp contact for offline support
       await db.contacts.put(tempContact);
       await db.syncQueue.add({
         type: 'create',
@@ -81,59 +157,65 @@ export const useContactStore = create<ContactState>((set, get) => ({
         data: tempContact as unknown as Record<string, unknown>,
         createdAt: new Date(),
       });
-      set((state) => ({
-        contacts: [...state.contacts, tempContact],
-        isLoading: false,
-      }));
       return tempContact;
     }
   },
 
   updateContact: async (id, contactData) => {
-    set({ isLoading: true });
+    // Store previous state for rollback
+    const previousContacts = get().contacts;
+    const existing = previousContacts.find((c) => c.id === id);
+    if (!existing) throw new Error('Contact not found');
+
+    // Optimistic update
+    const optimisticUpdate = { ...existing, ...contactData, updatedAt: new Date().toISOString() };
+    set((state) => ({
+      contacts: state.contacts.map((c) => (c.id === id ? optimisticUpdate : c)),
+      selectedContact: state.selectedContact?.id === id ? optimisticUpdate : state.selectedContact,
+    }));
+
     try {
       const contact = await contactApi.update(id, contactData);
       await db.contacts.put(contact);
       set((state) => ({
         contacts: state.contacts.map((c) => (c.id === id ? contact : c)),
         selectedContact: state.selectedContact?.id === id ? contact : state.selectedContact,
-        isLoading: false,
       }));
       return contact;
     } catch {
-      const existing = get().contacts.find((c) => c.id === id);
-      if (existing) {
-        const updated = { ...existing, ...contactData, updatedAt: new Date().toISOString() };
-        await db.contacts.put(updated);
-        await db.syncQueue.add({
-          type: 'update',
-          entity: 'contact',
-          entityId: id,
-          data: contactData as unknown as Record<string, unknown>,
-          createdAt: new Date(),
-        });
-        set((state) => ({
-          contacts: state.contacts.map((c) => (c.id === id ? updated : c)),
-          selectedContact: state.selectedContact?.id === id ? updated : state.selectedContact,
-          isLoading: false,
-        }));
-        return updated;
-      }
-      throw new Error('Contact not found');
+      // Keep optimistic update for offline support
+      await db.contacts.put(optimisticUpdate);
+      await db.syncQueue.add({
+        type: 'update',
+        entity: 'contact',
+        entityId: id,
+        data: contactData as unknown as Record<string, unknown>,
+        createdAt: new Date(),
+      });
+      return optimisticUpdate;
     }
   },
 
   deleteContact: async (id) => {
-    set({ isLoading: true });
+    // Store for potential rollback
+    const previousContacts = get().contacts;
+    const deletedContact = previousContacts.find((c) => c.id === id);
+
+    // Optimistic delete - remove immediately
+    set((state) => ({
+      contacts: state.contacts.filter((c) => c.id !== id),
+      selectedContact: state.selectedContact?.id === id ? null : state.selectedContact,
+      pagination: {
+        ...state.pagination,
+        totalCount: Math.max(0, state.pagination.totalCount - 1),
+      },
+    }));
+
     try {
       await contactApi.delete(id);
       await db.contacts.delete(id);
-      set((state) => ({
-        contacts: state.contacts.filter((c) => c.id !== id),
-        selectedContact: state.selectedContact?.id === id ? null : state.selectedContact,
-        isLoading: false,
-      }));
     } catch {
+      // For offline support, keep the deletion queued
       await db.contacts.delete(id);
       await db.syncQueue.add({
         type: 'delete',
@@ -142,15 +224,18 @@ export const useContactStore = create<ContactState>((set, get) => ({
         data: {},
         createdAt: new Date(),
       });
-      set((state) => ({
-        contacts: state.contacts.filter((c) => c.id !== id),
-        selectedContact: state.selectedContact?.id === id ? null : state.selectedContact,
-        isLoading: false,
-      }));
     }
   },
 
   setSelectedContact: (contact) => set({ selectedContact: contact }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedTags: (tags) => set({ selectedTags: tags }),
+  resetPagination: () => set({
+    pagination: {
+      page: 1,
+      pageSize: DEFAULT_PAGE_SIZE,
+      totalCount: 0,
+      hasMore: true,
+    },
+  }),
 }));
