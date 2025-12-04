@@ -19,6 +19,7 @@ import { Groups } from './pages/Groups';
 import { useAuthStore } from './store/authStore';
 import { ThemeProvider } from './hooks/useTheme';
 import { ToastProvider } from './components/ui';
+import { PWAReloadPrompt } from './components/PWAReloadPrompt';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -57,6 +58,7 @@ function App() {
               <Route path="settings" element={<Settings />} />
             </Route>
           </Routes>
+          <PWAReloadPrompt />
         </BrowserRouter>
       </ToastProvider>
     </ThemeProvider>
