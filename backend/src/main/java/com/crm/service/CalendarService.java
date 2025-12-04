@@ -23,6 +23,48 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Calendar Service for managing calendar events.
+ *
+ * ============================================
+ * CURRENT CAPABILITIES
+ * ============================================
+ * - CRUD operations for local calendar events
+ * - ICS export/import for manual sync with external calendars
+ * - Pseudo-Google Meet link generation (placeholder URLs)
+ * - Event completion with automatic Meeting record creation
+ * - Contact association and last-contacted tracking
+ *
+ * ============================================
+ * FUTURE: GOOGLE CALENDAR SYNC INTEGRATION
+ * ============================================
+ * When implementing Google Calendar sync, this service will be extended
+ * or a new GoogleCalendarSyncService will be created.
+ *
+ * Integration Points:
+ * -------------------
+ * 1. create() - After saving locally, queue event for push to Google
+ * 2. update() - Queue update for sync to Google, handle conflicts
+ * 3. delete() - Queue deletion on Google Calendar
+ * 4. complete() - Sync completion status to Google
+ *
+ * New Methods to Add:
+ * -------------------
+ * - syncFromGoogle(userId): Pull events from Google Calendar
+ * - syncToGoogle(userId): Push local changes to Google
+ * - resolveSyncConflict(eventId, resolution): Handle edit conflicts
+ * - getSyncStatus(userId): Return last sync time, pending changes count
+ *
+ * Entity Changes Required:
+ * ------------------------
+ * CalendarEvent entity needs new fields:
+ * - googleEventId: String (external ID from Google)
+ * - syncSource: Enum (LOCAL, GOOGLE, MERGED)
+ * - lastSyncedAt: LocalDateTime
+ * - syncStatus: Enum (SYNCED, PENDING_PUSH, PENDING_PULL, CONFLICT)
+ *
+ * See GoogleCalendarConfig.java for full architecture plan.
+ */
 @Service
 public class CalendarService {
     private final CalendarEventRepository eventRepository;

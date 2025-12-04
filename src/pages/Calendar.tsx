@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Video, Phone, MapPin, Clock, ExternalLink, Users, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button, Card, Modal, Input, Select, Textarea } from '../components/ui';
+import { Plus, Video, Phone, MapPin, Clock, ExternalLink, Users, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Download, CloudOff, Info } from 'lucide-react';
+import { Button, Card, Modal, Input, Select, Textarea, Badge } from '../components/ui';
 import { useCalendarStore } from '../store/calendarStore';
 import { useContactStore } from '../store/contactStore';
+import { calendarApi } from '../services/api';
 import type { CalendarEvent, CalendarEventType } from '../types';
 
 const eventTypeIcons: Record<CalendarEventType, React.ReactNode> = {
@@ -98,6 +99,26 @@ export function Calendar() {
   };
 
   const groupedUpcoming = groupEventsByDate(upcomingEvents);
+  const [showExportInfo, setShowExportInfo] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportIcs = async () => {
+    setIsExporting(true);
+    try {
+      const icsContent = await calendarApi.exportIcs();
+      const blob = new Blob([icsContent], { type: 'text/calendar' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'nu-connect-calendar.ics';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen pb-20">
@@ -105,10 +126,15 @@ export function Calendar() {
       <div className="sticky top-0 z-10 bg-[hsl(var(--background))] px-4 py-3 border-b border-[hsl(var(--border))]">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">Calendar</h1>
-          <Button size="sm" onClick={() => setShowModal(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Event
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setShowExportInfo(true)}>
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button size="sm" onClick={() => setShowModal(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Event
+            </Button>
+          </div>
         </div>
 
         {/* View Toggle */}
@@ -346,6 +372,72 @@ export function Calendar() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Export & Sync Info Modal */}
+      <Modal isOpen={showExportInfo} onClose={() => setShowExportInfo(false)} title="Calendar Export & Sync">
+        <div className="space-y-6">
+          {/* Current Feature */}
+          <div className="space-y-3">
+            <h3 className="font-medium flex items-center gap-2">
+              <Download className="h-4 w-4 text-[hsl(var(--primary))]" />
+              Export to ICS
+            </h3>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              Download your Nu-Connect events as an ICS file. You can then import this file into:
+            </p>
+            <ul className="text-sm text-[hsl(var(--muted-foreground))] list-disc list-inside space-y-1 ml-2">
+              <li>Google Calendar (Settings → Import & Export)</li>
+              <li>Apple Calendar (File → Import)</li>
+              <li>Microsoft Outlook (File → Open & Export → Import)</li>
+              <li>Any calendar app that supports ICS format</li>
+            </ul>
+            <Button onClick={handleExportIcs} disabled={isExporting} className="w-full">
+              {isExporting ? 'Exporting...' : 'Download ICS File'}
+            </Button>
+          </div>
+
+          <div className="border-t border-[hsl(var(--border))]" />
+
+          {/* Coming Soon */}
+          <div className="space-y-3">
+            <h3 className="font-medium flex items-center gap-2">
+              <CloudOff className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+              Calendar Sync
+              <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+            </h3>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              Automatic two-way sync with external calendars is planned for a future update:
+            </p>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-start gap-2 p-2 rounded-lg bg-[hsl(var(--muted))]">
+                <Info className="h-4 w-4 text-[hsl(var(--muted-foreground))] mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium">Phase 1: Google Calendar Import</p>
+                  <p className="text-[hsl(var(--muted-foreground))]">Read-only import of your Google Calendar events</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2 p-2 rounded-lg bg-[hsl(var(--muted))]">
+                <Info className="h-4 w-4 text-[hsl(var(--muted-foreground))] mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium">Phase 2: Two-Way Sync</p>
+                  <p className="text-[hsl(var(--muted-foreground))]">Create events in Nu-Connect, see them in Google Calendar</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2 p-2 rounded-lg bg-[hsl(var(--muted))]">
+                <Info className="h-4 w-4 text-[hsl(var(--muted-foreground))] mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium">Phase 3: Mobile Calendar</p>
+                  <p className="text-[hsl(var(--muted-foreground))]">Sync with native iOS/Android calendar apps</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Button variant="outline" className="w-full" onClick={() => setShowExportInfo(false)}>
+            Close
+          </Button>
+        </div>
       </Modal>
     </div>
   );
