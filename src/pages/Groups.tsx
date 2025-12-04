@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Users, ChevronRight } from 'lucide-react';
-import { Button, Card, Modal, Input, Textarea } from '../components/ui';
+import { Plus, Edit2, Trash2, Users, ChevronRight, AlertCircle } from 'lucide-react';
+import { Button, Card, Modal, Input, Textarea, useToast } from '../components/ui';
 import { groupApi, contactApi } from '../services/api';
 import type { ContactGroup, Contact } from '../types';
 
@@ -20,8 +20,11 @@ export function Groups() {
   const [groups, setGroups] = useState<ContactGroup[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<ContactGroup | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<ContactGroup | null>(null);
   const [groupContacts, setGroupContacts] = useState<Contact[]>([]);
   const [editingGroup, setEditingGroup] = useState<ContactGroup | null>(null);
@@ -30,6 +33,8 @@ export function Groups() {
     description: '',
     color: '#3B82F6',
   });
+  const [errors, setErrors] = useState<{ name?: string }>({});
+  const { addToast } = useToast();
 
   const fetchGroups = async () => {
     try {
@@ -57,20 +62,65 @@ export function Groups() {
     fetchContacts();
   }, []);
 
+  const validateForm = (): boolean => {
+    const newErrors: { name?: string } = {};
+
+    // Name validation
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
+      newErrors.name = 'Group name is required';
+    } else if (trimmedName.length < 2) {
+      newErrors.name = 'Group name must be at least 2 characters';
+    } else if (trimmedName.length > 50) {
+      newErrors.name = 'Group name must be less than 50 characters';
+    } else {
+      // Check for duplicate names (excluding current group when editing)
+      const isDuplicate = groups.some(
+        g => g.name.toLowerCase() === trimmedName.toLowerCase() && g.id !== editingGroup?.id
+      );
+      if (isDuplicate) {
+        newErrors.name = 'A group with this name already exists';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSaving(true);
     try {
       if (editingGroup) {
-        await groupApi.update(editingGroup.id, formData);
+        await groupApi.update(editingGroup.id, {
+          ...formData,
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+        });
+        addToast({ type: 'success', title: 'Group updated successfully' });
       } else {
-        await groupApi.create(formData);
+        await groupApi.create({
+          ...formData,
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+        });
+        addToast({ type: 'success', title: 'Group created successfully' });
       }
       setShowModal(false);
       setEditingGroup(null);
       setFormData({ name: '', description: '', color: '#3B82F6' });
+      setErrors({});
       fetchGroups();
     } catch (error) {
       console.error('Failed to save group:', error);
+      addToast({ type: 'error', title: 'Failed to save group', message: 'Please try again.' });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -81,23 +131,37 @@ export function Groups() {
       description: group.description || '',
       color: group.color || '#3B82F6',
     });
+    setErrors({});
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this group?')) {
-      try {
-        await groupApi.delete(id);
-        fetchGroups();
-      } catch (error) {
-        console.error('Failed to delete group:', error);
-      }
+  const confirmDelete = (group: ContactGroup) => {
+    setGroupToDelete(group);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (!groupToDelete) return;
+
+    setIsSaving(true);
+    try {
+      await groupApi.delete(groupToDelete.id);
+      addToast({ type: 'success', title: 'Group deleted successfully' });
+      setShowDeleteModal(false);
+      setGroupToDelete(null);
+      fetchGroups();
+    } catch (error) {
+      console.error('Failed to delete group:', error);
+      addToast({ type: 'error', title: 'Failed to delete group', message: 'Please try again.' });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const openNewModal = () => {
     setEditingGroup(null);
     setFormData({ name: '', description: '', color: '#3B82F6' });
+    setErrors({});
     setShowModal(true);
   };
 
@@ -204,12 +268,14 @@ export function Groups() {
                   <button
                     onClick={() => handleEdit(group)}
                     className="p-2 rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]"
+                    title="Edit group"
                   >
                     <Edit2 className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(group.id)}
+                    onClick={() => confirmDelete(group)}
                     className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
+                    title="Delete group"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -227,13 +293,24 @@ export function Groups() {
         title={editingGroup ? 'Edit Group' : 'New Group'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Group Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-            placeholder="e.g., Work, Family, Clients"
-          />
+          <div>
+            <Input
+              label="Group Name"
+              value={formData.name}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value });
+                if (errors.name) setErrors({});
+              }}
+              placeholder="e.g., Work, Family, Clients"
+              className={errors.name ? 'border-red-500 focus:ring-red-500' : ''}
+            />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {errors.name}
+              </p>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">Color</label>
@@ -269,11 +346,21 @@ export function Groups() {
               variant="outline"
               className="flex-1"
               onClick={() => setShowModal(false)}
+              disabled={isSaving}
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1">
-              {editingGroup ? 'Save Changes' : 'Create Group'}
+            <Button type="submit" className="flex-1" disabled={isSaving}>
+              {isSaving ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Saving...
+                </span>
+              ) : editingGroup ? (
+                'Save Changes'
+              ) : (
+                'Create Group'
+              )}
             </Button>
           </div>
         </form>
@@ -351,6 +438,61 @@ export function Groups() {
           >
             Done
           </Button>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setGroupToDelete(null);
+        }}
+        title="Delete Group"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                Are you sure you want to delete this group?
+              </p>
+              <p className="text-sm text-red-600 dark:text-red-300 mt-1">
+                "{groupToDelete?.name}" will be permanently deleted. Contacts in this group will not be deleted.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setGroupToDelete(null);
+              }}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="flex-1"
+              onClick={handleDelete}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Deleting...
+                </span>
+              ) : (
+                'Delete Group'
+              )}
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>
