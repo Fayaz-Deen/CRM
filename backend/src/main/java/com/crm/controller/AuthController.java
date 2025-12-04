@@ -5,6 +5,7 @@ import com.crm.dto.AuthResponse;
 import com.crm.entity.User;
 import com.crm.repository.UserRepository;
 import com.crm.service.AuthService;
+import com.crm.service.GoogleAuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +17,14 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+    private final GoogleAuthService googleAuthService;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
-    public AuthController(AuthService authService, UserRepository userRepository, ObjectMapper objectMapper) {
+    public AuthController(AuthService authService, GoogleAuthService googleAuthService,
+                          UserRepository userRepository, ObjectMapper objectMapper) {
         this.authService = authService;
+        this.googleAuthService = googleAuthService;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
     }
@@ -38,6 +42,34 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody Map<String, String> body) {
         return ResponseEntity.ok(authService.refresh(body.get("refreshToken")));
+    }
+
+    /**
+     * Authenticate with Google OAuth.
+     * Accepts either authorization code or ID token.
+     *
+     * Request body:
+     * - code: Google authorization code (from OAuth redirect)
+     * - redirectUri: The redirect URI used in the authorization request
+     * OR
+     * - idToken: Google ID token (from one-tap sign-in or mobile)
+     */
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleAuth(@RequestBody Map<String, String> body) {
+        String code = body.get("code");
+        String idToken = body.get("idToken");
+        String redirectUri = body.get("redirectUri");
+
+        if (idToken != null && !idToken.isEmpty()) {
+            return ResponseEntity.ok(googleAuthService.authenticateWithIdToken(idToken));
+        } else if (code != null && !code.isEmpty()) {
+            if (redirectUri == null || redirectUri.isEmpty()) {
+                throw new RuntimeException("redirectUri is required when using authorization code");
+            }
+            return ResponseEntity.ok(googleAuthService.authenticateWithGoogle(code, redirectUri));
+        } else {
+            throw new RuntimeException("Either code or idToken is required");
+        }
     }
 
     @GetMapping("/profile")

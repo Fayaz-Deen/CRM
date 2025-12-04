@@ -91,8 +91,8 @@ export const authApi = {
   register: (email: string, password: string, name: string) =>
     api.post<AuthResponse>('/auth/register', { email, password, name }),
 
-  googleAuth: (code: string) =>
-    api.post<AuthResponse>('/auth/google', { code }),
+  googleAuth: (params: { code?: string; idToken?: string; redirectUri?: string }) =>
+    api.post<AuthResponse>('/auth/google', params),
 
   forgotPassword: (email: string) =>
     api.post<{ message: string }>('/auth/forgot-password', { email }),
