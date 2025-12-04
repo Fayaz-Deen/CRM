@@ -50,25 +50,46 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <button
-        className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl bg-[hsl(var(--card))] shadow-medium lg:hidden transition-transform hover:scale-105 active:scale-95"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
+      {/* Mobile Header */}
+      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between h-16 px-4 bg-[hsl(var(--card))]/95 backdrop-blur-lg border-b border-[hsl(var(--border))] lg:hidden">
+        {/* Menu button */}
+        <button
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-[hsl(var(--accent))] transition-all hover:bg-[hsl(var(--accent))]/80 active:scale-95"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <img src="/logo.gif" alt="Nu-Connect" className="h-8 w-8 rounded-lg object-contain" />
+          <span className="text-base font-bold">Nu-Connect</span>
+        </div>
+
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-[hsl(var(--accent))] transition-all hover:bg-[hsl(var(--accent))]/80 active:scale-95"
+        >
+          {resolvedTheme === 'dark' ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+        </button>
+      </header>
 
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden animate-fade-in"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden animate-fade-in"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 transform bg-[hsl(var(--card))] shadow-strong transition-transform duration-300 ease-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 transform bg-[hsl(var(--card))] shadow-strong transition-transform duration-300 ease-out lg:translate-x-0 lg:z-40 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
