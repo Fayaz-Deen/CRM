@@ -40,6 +40,7 @@ public class SecurityConfig {
             .authorizeRequests()
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/api/health").permitAll()
+                .antMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                 .antMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/forgot-password").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
