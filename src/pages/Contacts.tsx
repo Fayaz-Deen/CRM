@@ -1,24 +1,32 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Search, Phone, Mail, MessageCircle, Users, Upload, UserPlus, Trash2, CheckSquare, Square, X, Loader2 } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MessageCircle, Users, Upload, UserPlus, Trash2, CheckSquare, Square, X, Loader2, Gift, Calendar } from 'lucide-react';
 import { Button, Input, Card, Avatar, Badge, Modal, SkeletonContactCard } from '../components/ui';
 import { useContactStore } from '../store/contactStore';
 import { ContactForm } from '../components/contacts/ContactForm';
 import { openWhatsApp, openEmail, openPhoneCall } from '../utils/communication';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+import { getDaysUntil } from '../utils/dates';
 import type { Contact } from '../types';
+
+type FilterType = 'all' | 'birthdays' | 'anniversaries';
 
 export function Contacts() {
   const { contacts, isLoading, isLoadingMore, pagination, fetchContacts, loadMore, searchQuery, setSearchQuery, selectedTags, setSelectedTags, deleteContact } = useContactStore();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Handle action query param
+  // Handle query params
   useEffect(() => {
     if (searchParams.get('action') === 'add') {
       setShowAddModal(true);
       setSearchParams({});
+    }
+    const filter = searchParams.get('filter');
+    if (filter === 'birthdays' || filter === 'anniversaries') {
+      setActiveFilter(filter);
     }
   }, [searchParams, setSearchParams]);
 
@@ -64,13 +72,40 @@ export function Contacts() {
 
   const allTags = [...new Set(contacts.flatMap((c) => c.tags))];
 
-  const filteredContacts = contacts.filter((contact) => {
-    const matchesSearch = contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.emails.some((e) => e.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesTags = selectedTags.length === 0 || selectedTags.some((tag) => contact.tags.includes(tag));
-    return matchesSearch && matchesTags;
-  });
+  // Helper to check if date is upcoming (within next 30 days)
+  const isUpcoming = (dateStr: string | undefined) => {
+    if (!dateStr) return false;
+    const days = getDaysUntil(dateStr);
+    return days >= 0 && days <= 30;
+  };
+
+  const filteredContacts = contacts
+    .filter((contact) => {
+      const matchesSearch = contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.emails.some((e) => e.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesTags = selectedTags.length === 0 || selectedTags.some((tag) => contact.tags.includes(tag));
+
+      // Apply special filters
+      if (activeFilter === 'birthdays') {
+        return matchesSearch && matchesTags && isUpcoming(contact.birthday);
+      }
+      if (activeFilter === 'anniversaries') {
+        return matchesSearch && matchesTags && isUpcoming(contact.anniversary);
+      }
+
+      return matchesSearch && matchesTags;
+    })
+    .sort((a, b) => {
+      // Sort by upcoming date when filter is active
+      if (activeFilter === 'birthdays' && a.birthday && b.birthday) {
+        return getDaysUntil(a.birthday) - getDaysUntil(b.birthday);
+      }
+      if (activeFilter === 'anniversaries' && a.anniversary && b.anniversary) {
+        return getDaysUntil(a.anniversary) - getDaysUntil(b.anniversary);
+      }
+      return 0;
+    });
 
   const toggleTag = (tag: string) => {
     setSelectedTags(selectedTags.includes(tag) ? selectedTags.filter((t) => t !== tag) : [...selectedTags, tag]);
@@ -117,6 +152,31 @@ export function Contacts() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant={activeFilter === 'all' ? 'primary' : 'outline'}
+            onClick={() => { setActiveFilter('all'); setSearchParams({}); }}
+          >
+            <Users className="h-4 w-4 mr-1" /> All
+          </Button>
+          <Button
+            size="sm"
+            variant={activeFilter === 'birthdays' ? 'primary' : 'outline'}
+            onClick={() => { setActiveFilter('birthdays'); setSearchParams({ filter: 'birthdays' }); }}
+          >
+            <Gift className="h-4 w-4 mr-1" /> Upcoming Birthdays
+          </Button>
+          <Button
+            size="sm"
+            variant={activeFilter === 'anniversaries' ? 'primary' : 'outline'}
+            onClick={() => { setActiveFilter('anniversaries'); setSearchParams({ filter: 'anniversaries' }); }}
+          >
+            <Calendar className="h-4 w-4 mr-1" /> Upcoming Anniversaries
+          </Button>
         </div>
 
         {allTags.length > 0 && (
@@ -182,6 +242,7 @@ export function Contacts() {
                 isSelected={selectedContacts.has(contact.id)}
                 onToggleSelect={() => toggleSelectContact(contact.id)}
                 selectionMode={selectedContacts.size > 0}
+                activeFilter={activeFilter}
               />
             ))}
           </div>
@@ -217,13 +278,23 @@ function ContactCard({
   contact,
   isSelected,
   onToggleSelect,
-  selectionMode
+  selectionMode,
+  activeFilter
 }: {
   contact: Contact;
   isSelected: boolean;
   onToggleSelect: () => void;
   selectionMode: boolean;
+  activeFilter: FilterType;
 }) {
+  const showBirthdayBadge = activeFilter === 'birthdays' && contact.birthday;
+  const showAnniversaryBadge = activeFilter === 'anniversaries' && contact.anniversary;
+  const daysUntil = showBirthdayBadge
+    ? getDaysUntil(contact.birthday!)
+    : showAnniversaryBadge
+      ? getDaysUntil(contact.anniversary!)
+      : null;
+
   return (
     <Card className={`overflow-hidden transition-all hover:shadow-lg ${isSelected ? 'ring-2 ring-[hsl(var(--primary))]' : ''}`}>
       <div className="relative">
@@ -246,6 +317,16 @@ function ContactCard({
           )}
         </button>
 
+        {/* Days until badge */}
+        {daysUntil !== null && (
+          <div className="absolute top-3 right-3 z-10">
+            <Badge variant={daysUntil <= 7 ? 'default' : 'secondary'} className="flex items-center gap-1">
+              {showBirthdayBadge ? <Gift className="h-3 w-3" /> : <Calendar className="h-3 w-3" />}
+              {daysUntil === 0 ? 'Today!' : `${daysUntil}d`}
+            </Badge>
+          </div>
+        )}
+
         <Link to={`/contacts/${contact.id}`} className="block p-4 group">
           <div className="flex items-start gap-4">
             <Avatar src={contact.profilePicture} name={contact.name} size="lg" />
@@ -254,7 +335,18 @@ function ContactCard({
               {contact.company && (
                 <p className="truncate text-sm text-[hsl(var(--muted-foreground))]">{contact.company}</p>
               )}
-              {contact.tags.length > 0 && (
+              {/* Show date info when filtered */}
+              {showBirthdayBadge && (
+                <p className="text-sm text-pink-600 dark:text-pink-400 mt-1">
+                  🎂 {new Date(contact.birthday!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
+              )}
+              {showAnniversaryBadge && (
+                <p className="text-sm text-purple-600 dark:text-purple-400 mt-1">
+                  💍 {new Date(contact.anniversary!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
+              )}
+              {contact.tags.length > 0 && !showBirthdayBadge && !showAnniversaryBadge && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {contact.tags.slice(0, 3).map((tag) => (
                     <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
