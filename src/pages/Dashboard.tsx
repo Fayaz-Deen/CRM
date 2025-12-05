@@ -71,12 +71,12 @@ const FALLBACK_MEETINGS_CHART = [
 ];
 
 const FALLBACK_CONTACTS_OVER_TIME = [
-  { month: 'Jan', count: 0 },
-  { month: 'Feb', count: 0 },
-  { month: 'Mar', count: 0 },
-  { month: 'Apr', count: 0 },
-  { month: 'May', count: 0 },
-  { month: 'Jun', count: 0 },
+  { label: 'Jan', count: 0 },
+  { label: 'Feb', count: 0 },
+  { label: 'Mar', count: 0 },
+  { label: 'Apr', count: 0 },
+  { label: 'May', count: 0 },
+  { label: 'Jun', count: 0 },
 ];
 
 const FALLBACK_MEDIUM_BREAKDOWN = [
@@ -93,7 +93,8 @@ const CollapsibleSection = ({
   badge,
   count,
   children,
-  defaultOpen = false
+  defaultOpen = false,
+  headerAction
 }: {
   title: string;
   icon?: typeof TrendingUp;
@@ -102,34 +103,46 @@ const CollapsibleSection = ({
   count?: number;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  headerAction?: React.ReactNode;
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <Card variant="elevated" className="overflow-hidden">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-3 p-4 sm:p-6 hover:bg-[hsl(var(--accent))]/50 transition-colors text-left"
-      >
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+      <div className="flex items-center justify-between gap-3 p-4 sm:p-6">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-80 transition-opacity text-left"
+        >
           {Icon && <Icon className={`h-5 w-5 shrink-0 ${iconColor || 'text-[hsl(var(--primary))]'}`} />}
           <span className="font-semibold truncate">{title}</span>
           {badge && <Badge variant="secondary" className="shrink-0 hidden sm:inline-flex">{badge}</Badge>}
-        </div>
+        </button>
         <div className="flex items-center gap-2 shrink-0">
+          {/* Header action (e.g., time period selector) */}
+          {isOpen && headerAction && (
+            <div onClick={(e) => e.stopPropagation()}>
+              {headerAction}
+            </div>
+          )}
           {/* Show count badge when collapsed */}
           {!isOpen && count !== undefined && count > 0 && (
             <span className="inline-flex items-center justify-center h-6 min-w-[24px] px-2 rounded-full bg-[hsl(var(--primary))] text-white text-xs font-medium">
               {count}
             </span>
           )}
-          <ChevronDown
-            className={`h-5 w-5 text-[hsl(var(--muted-foreground))] transition-transform duration-200 ${
-              isOpen ? 'rotate-180' : ''
-            }`}
-          />
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-1 hover:bg-[hsl(var(--accent))] rounded-lg transition-colors"
+          >
+            <ChevronDown
+              className={`h-5 w-5 text-[hsl(var(--muted-foreground))] transition-transform duration-200 ${
+                isOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
         </div>
-      </button>
+      </div>
       <div
         className={`transition-all duration-300 ease-in-out overflow-hidden ${
           isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
@@ -404,15 +417,32 @@ const NeedsAttentionList = ({ contacts }: { contacts: Contact[] | undefined }) =
   );
 };
 
+type ContactsTimePeriod = 'week' | 'month' | 'year';
+
 export function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [meetingsChart, setMeetingsChart] = useState<{ week: string; count: number }[]>([]);
   const [mediumBreakdown, setMediumBreakdown] = useState<{ medium: string; count: number }[]>([]);
-  const [contactsOverTime, setContactsOverTime] = useState<{ month: string; count: number }[]>([]);
+  const [contactsOverTime, setContactsOverTime] = useState<{ label: string; count: number }[]>([]);
+  const [contactsTimePeriod, setContactsTimePeriod] = useState<ContactsTimePeriod>('month');
+  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuthStore();
   const { recentlyViewed } = useContactStore();
+
+  // Fetch contacts over time when period changes
+  const fetchContactsOverTime = async (period: ContactsTimePeriod) => {
+    setIsLoadingContacts(true);
+    try {
+      const contactsData = await dashboardApi.getContactsOverTime(period);
+      setContactsOverTime(contactsData);
+    } catch (error) {
+      console.error('Failed to fetch contacts over time:', error);
+    } finally {
+      setIsLoadingContacts(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -421,7 +451,7 @@ export function Dashboard() {
           dashboardApi.getStats(),
           dashboardApi.getMeetingsChart(),
           dashboardApi.getMediumBreakdown(),
-          dashboardApi.getContactsOverTime(),
+          dashboardApi.getContactsOverTime('month'),
         ]);
         setStats(statsData);
         setMeetingsChart(chartData);
@@ -443,6 +473,12 @@ export function Dashboard() {
     };
     fetchData();
   }, []);
+
+  // Handle time period change
+  const handleTimePeriodChange = (period: ContactsTimePeriod) => {
+    setContactsTimePeriod(period);
+    fetchContactsOverTime(period);
+  };
 
   // Use fallback data if API returns empty arrays
   const chartMeetings = meetingsChart.length > 0 ? meetingsChart : FALLBACK_MEETINGS_CHART;
@@ -599,12 +635,33 @@ export function Dashboard() {
 
       {/* Contacts Growth Chart - Full Width - Collapsible */}
       <CollapsibleSection
-        title="Contacts Added Over Time"
+        title="Contacts Growth"
         icon={TrendingUp}
         iconColor="text-green-500"
-        badge="Last 6 months"
+        headerAction={
+          <div className="flex items-center gap-1 bg-[hsl(var(--muted))]/50 rounded-lg p-1">
+            {(['week', 'month', 'year'] as ContactsTimePeriod[]).map((period) => (
+              <button
+                key={period}
+                onClick={() => handleTimePeriodChange(period)}
+                disabled={isLoadingContacts}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  contactsTimePeriod === period
+                    ? 'bg-[hsl(var(--background))] text-[hsl(var(--foreground))] shadow-sm'
+                    : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+                } ${isLoadingContacts ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {period === 'week' ? 'Week' : period === 'month' ? 'Month' : 'Year'}
+              </button>
+            ))}
+          </div>
+        }
       >
-        {contactsOverTime.length === 0 ? (
+        {isLoadingContacts ? (
+          <div className="h-56 sm:h-72 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--primary))]" />
+          </div>
+        ) : contactsOverTime.length === 0 ? (
           <div className="h-56 sm:h-72 flex flex-col items-center justify-center text-center">
             <BarChart3 className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3" />
             <p className="text-[hsl(var(--muted-foreground))]">No contact data yet</p>
@@ -621,7 +678,7 @@ export function Dashboard() {
                 </linearGradient>
               </defs>
               <XAxis
-                dataKey="month"
+                dataKey="label"
                 fontSize={12}
                 tick={{ fill: 'hsl(var(--muted-foreground))' }}
                 axisLine={false}

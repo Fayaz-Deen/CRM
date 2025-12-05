@@ -193,8 +193,8 @@ export const dashboardApi = {
   getMediumBreakdown: () =>
     api.get<{ medium: string; count: number }[]>('/dashboard/medium-breakdown'),
 
-  getContactsOverTime: () =>
-    api.get<{ month: string; count: number }[]>('/dashboard/contacts-over-time'),
+  getContactsOverTime: (period: 'week' | 'month' | 'year' = 'month') =>
+    api.get<{ label: string; count: number }[]>(`/dashboard/contacts-over-time?period=${period}`),
 };
 
 // Task API
