@@ -46,9 +46,9 @@ export function Login() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left side - Decorative */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10" />
+      {/* Left side - Decorative with Nulogic brand gradient (Red → Pink → Purple) */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #ef4444 0%, #db2777 35%, #a855f7 70%, #7c3aed 100%)' }}>
+        <div className="absolute inset-0 bg-black/5" />
         <div className="absolute inset-0">
           {/* Decorative circles */}
           <div className="absolute top-20 left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-float" />
