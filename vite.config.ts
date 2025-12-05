@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'logo.gif', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'logo.png', 'symbol.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'Nu-Connect',
         short_name: 'Nu-Connect',

@@ -57,9 +57,8 @@ export function Login() {
         </div>
 
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          <div className="flex items-center gap-3 mb-8">
-            <img src="/logo.gif" alt="Nu-Connect" className="h-14 w-14 rounded-2xl object-contain bg-white/20 backdrop-blur-sm p-2" />
-            <span className="text-2xl font-bold">Nu-Connect</span>
+          <div className="mb-8">
+            <img src="/logo.png" alt="Nulogic" className="h-12 object-contain" />
           </div>
 
           <h1 className="text-5xl font-bold mb-6 leading-tight">
@@ -90,9 +89,8 @@ export function Login() {
       <div className="flex w-full lg:w-1/2 items-center justify-center bg-[hsl(var(--background))] p-6 sm:p-8">
         <div className="w-full max-w-md animate-fade-in-up">
           {/* Mobile logo */}
-          <div className="flex lg:hidden items-center justify-center gap-2 mb-8">
-            <img src="/logo.gif" alt="Nu-Connect" className="h-10 w-10 rounded-xl object-contain" />
-            <span className="text-xl font-bold">Nu-Connect</span>
+          <div className="flex lg:hidden items-center justify-center mb-8">
+            <img src="/logo.png" alt="Nulogic" className="h-10 object-contain" />
           </div>
 
           <Card className="border-0 shadow-strong">

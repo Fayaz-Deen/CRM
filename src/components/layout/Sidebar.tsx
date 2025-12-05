@@ -73,7 +73,7 @@ export function Sidebar() {
         </button>
 
         <div className="flex items-center gap-2">
-          <img src="/logo.gif" alt="Nu-Connect" className="h-7 w-7 rounded-lg object-contain" />
+          <img src="/symbol.png" alt="Nu-Connect" className="h-7 w-7 rounded-lg object-contain" />
           <span className="text-sm font-bold">Nu-Connect</span>
         </div>
 
@@ -175,7 +175,7 @@ export function Sidebar() {
       <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-72 flex-col bg-[hsl(var(--card))] shadow-strong">
         {/* Logo */}
         <div className="flex h-20 items-center gap-3 border-b border-[hsl(var(--border))] px-6">
-          <img src="/logo.gif" alt="Nu-Connect" className="h-11 w-11 rounded-xl object-contain" />
+          <img src="/symbol.png" alt="Nu-Connect" className="h-11 w-11 rounded-xl object-contain" />
           <div>
             <span className="text-lg font-bold">Nu-Connect</span>
             <p className="text-xs text-[hsl(var(--muted-foreground))]">Manage your network</p>
