@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -60,6 +61,7 @@ function App() {
           </Routes>
           <PWAReloadPrompt />
         </BrowserRouter>
+        <SpeedInsights />
       </ToastProvider>
     </ThemeProvider>
   );
